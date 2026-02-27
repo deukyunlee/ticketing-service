@@ -7,8 +7,8 @@ spring:
   datasource:
     url: jdbc:h2:mem:ticketdb
     driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    username: ${env.H2_USERNAME}
+    password: ${env.H2_PASSWORD}
   h2:
     console:
       enabled: true
