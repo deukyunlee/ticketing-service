@@ -4,6 +4,7 @@ import com.ticketing.ticket.dto.CreateEventRequest;
 import com.ticketing.ticket.dto.EventResponse;
 import com.ticketing.ticket.dto.SeatResponse;
 import com.ticketing.ticket.service.EventService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventResponse> createEvent(@RequestBody CreateEventRequest request) {
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody CreateEventRequest request) {
         return ResponseEntity.ok(eventService.createEvent(request));
     }
 
