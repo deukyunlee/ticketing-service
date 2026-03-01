@@ -30,6 +30,6 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = GeneralErrorCode.INTERNAL_SERVER_ERROR;
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(new ErrorResponse(errorCode, e.getMessage()));
+                .body(new ErrorResponse(errorCode, "An internal server error occurred."));
     }
 }
