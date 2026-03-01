@@ -25,11 +25,7 @@ public class TicketEventListener {
     public void onReservationRequested(ReservationRequestedEvent event) {
         log.info("Received reservation request: reservationId={}, eventId={}, seat={}",
                 event.getReservationId(), event.getEventId(), event.getSeatNumber());
-        try {
-            seatService.reserveSeat(Long.parseLong(event.getEventId()), event.getSeatNumber());
-        } catch (Exception e) {
-            log.error("Failed to reserve seat: {}", e.getMessage());
-        }
+        seatService.reserveSeat(Long.parseLong(event.getEventId()), event.getSeatNumber());
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC, groupId = "ticket-consumer-group",
@@ -37,10 +33,6 @@ public class TicketEventListener {
     public void onReservationCancelled(ReservationCancelledEvent event) {
         log.info("Received reservation cancellation: reservationId={}, eventId={}, seat={}",
                 event.getReservationId(), event.getEventId(), event.getSeatNumber());
-        try {
-            seatService.releaseSeat(Long.parseLong(event.getEventId()), event.getSeatNumber());
-        } catch (Exception e) {
-            log.error("Failed to release seat: {}", e.getMessage());
-        }
+        seatService.releaseSeat(Long.parseLong(event.getEventId()), event.getSeatNumber());
     }
 }
