@@ -24,7 +24,7 @@ public class Seat {
     private String seatNumber;
 
     @Column(nullable = false)
-    private boolean reserved = false;
+    private boolean reserved;
 
     public Seat(Long eventId, String seatNumber) {
         this.eventId = eventId;

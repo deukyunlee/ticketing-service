@@ -34,7 +34,7 @@ public class Event {
     @Column(nullable = false)
     private long price;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     public Event(String title, String description, String venue,
         LocalDateTime eventDate, int totalSeats, long price) {
