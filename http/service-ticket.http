@@ -1,0 +1,128 @@
+### ============================================================
+### Service-Ticket API 테스트
+### 공연(Event) 관리 및 좌석(Seat) 조회 API
+### ============================================================
+
+@host = http://localhost:8080
+
+
+### ──────────────────────────────────────────────
+### 1. 공연 생성 (POST /api/events)
+### ──────────────────────────────────────────────
+
+### 1-1. 공연 생성 - Spring Concert
+POST {{host}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Spring Concert",
+  "description": "봄 콘서트",
+  "venue": "올림픽홀",
+  "eventDate": "2026-06-01T19:00:00",
+  "totalSeats": 10,
+  "price": 50000
+}
+
+### 1-2. 공연 생성 - Summer Festival
+POST {{host}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Summer Festival",
+  "description": "여름 페스티벌",
+  "venue": "잠실경기장",
+  "eventDate": "2026-08-15T18:00:00",
+  "totalSeats": 5,
+  "price": 80000
+}
+
+### 1-3. 공연 생성 - 좌석 1개짜리 소규모 공연
+POST {{host}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Solo Recital",
+  "description": "피아노 독주회",
+  "venue": "예술의전당 리사이틀홀",
+  "eventDate": "2026-09-20T15:00:00",
+  "totalSeats": 1,
+  "price": 30000
+}
+
+### 1-4. 공연 생성 - 대규모 공연
+POST {{host}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Year-End Concert",
+  "description": "연말 콘서트",
+  "venue": "고척스카이돔",
+  "eventDate": "2026-12-31T20:00:00",
+  "totalSeats": 100,
+  "price": 120000
+}
+
+
+### ──────────────────────────────────────────────
+### 2. 공연 조회 (GET /api/events)
+### ──────────────────────────────────────────────
+
+### 2-1. 전체 공연 목록 조회
+GET {{host}}/api/events
+
+### 2-2. 공연 단건 조회 (eventId=1)
+GET {{host}}/api/events/1
+
+### 2-3. 공연 단건 조회 (eventId=2)
+GET {{host}}/api/events/2
+
+### 2-4. 존재하지 않는 공연 조회 (에러 응답)
+GET {{host}}/api/events/99999999999
+
+
+### ──────────────────────────────────────────────
+### 3. 좌석 조회 - 전체 좌석 (GET /api/events/{eventId}/seats)
+### ──────────────────────────────────────────────
+
+### 3-1. eventId=1 전체 좌석 조회
+GET {{host}}/api/events/1/seats
+
+### 3-2. eventId=2 전체 좌석 조회
+GET {{host}}/api/events/2/seats
+
+### 3-3. eventId=3 전체 좌석 조회
+GET {{host}}/api/events/3/seats
+
+### 3-4. 존재하지 않는 공연의 좌석 조회
+GET {{host}}/api/events/99999999999/seats
+
+
+### ──────────────────────────────────────────────
+### 4. 좌석 조회 - 잔여 좌석 (GET /api/events/{eventId}/seats/available)
+### ──────────────────────────────────────────────
+
+### 4-1. eventId=1 잔여 좌석 조회
+GET {{host}}/api/events/1/seats/available
+
+### 4-2. eventId=2 잔여 좌석 조회
+GET {{host}}/api/events/2/seats/available
+
+### 4-3. eventId=3 잔여 좌석 조회
+GET {{host}}/api/events/3/seats/available
+
+### 4-4. 존재하지 않는 공연 잔여 좌석 조회
+GET {{host}}/api/events/99999999999/seats/available
+
+
+### ──────────────────────────────────────────────
+### 5. 예약 후 좌석 상태 변경 확인
+###    (Kafka를 통해 좌석이 선점된 후 조회)
+### ──────────────────────────────────────────────
+
+### 5-1. 예약 후 eventId=1 전체 좌석 조회
+# A1이 reserved=true로 변경되었는지 확인
+GET {{host}}/api/events/1/seats
+
+### 5-2. 예약 후 eventId=1 잔여 좌석 조회
+# A1이 목록에서 빠졌는지 확인
+GET {{host}}/api/events/1/seats/available
