@@ -1,6 +1,7 @@
 package com.ticketing.ticket.service;
 
 import com.ticketing.ticket.dto.CreateEventRequest;
+import com.ticketing.ticket.dto.EventResponse;
 import com.ticketing.ticket.entity.Event;
 import com.ticketing.ticket.entity.Seat;
 import com.ticketing.ticket.repository.EventRepository;
@@ -43,8 +44,10 @@ class EventServiceTest {
                 LocalDateTime.of(2026, 6, 1, 19, 0), 3, 50000);
         given(eventRepository.save(any(Event.class))).willReturn(savedEvent);
 
-        eventService.createEvent(request);
+        EventResponse response = eventService.createEvent(request);
 
+        assertThat(response.title()).isEqualTo("Concert");
+        assertThat(response.totalSeats()).isEqualTo(3);
         verify(eventRepository).save(any(Event.class));
         ArgumentCaptor<List<Seat>> seatsCaptor = ArgumentCaptor.forClass(List.class);
         verify(seatRepository).saveAll(seatsCaptor.capture());

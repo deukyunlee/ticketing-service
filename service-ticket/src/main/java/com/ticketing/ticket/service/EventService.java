@@ -1,6 +1,8 @@
 package com.ticketing.ticket.service;
 
 import com.ticketing.ticket.dto.CreateEventRequest;
+import com.ticketing.ticket.dto.EventResponse;
+import com.ticketing.ticket.dto.SeatResponse;
 import com.ticketing.ticket.entity.Event;
 import com.ticketing.ticket.entity.Seat;
 import com.ticketing.common.exception.BusinessException;
@@ -25,7 +27,7 @@ public class EventService {
     }
 
     @Transactional
-    public Event createEvent(CreateEventRequest request) {
+    public EventResponse createEvent(CreateEventRequest request) {
         Event event = new Event(
                 request.getTitle(),
                 request.getDescription(),
@@ -41,30 +43,37 @@ public class EventService {
                 .toList();
         seatRepository.saveAll(seats);
 
-        return saved;
+        return EventResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+    public List<EventResponse> getAllEvents() {
+        return eventRepository.findAll().stream()
+                .map(EventResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public Event getEvent(Long eventId) {
-        return eventRepository.findById(eventId)
+    public EventResponse getEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(TicketErrorCode.EVENT_NOT_FOUND, String.valueOf(eventId)));
+        return EventResponse.from(event);
     }
 
     @Transactional(readOnly = true)
-    public List<Seat> getAvailableSeats(Long eventId) {
+    public List<SeatResponse> getAvailableSeats(Long eventId) {
         validateEventExists(eventId);
-        return seatRepository.findByEventIdAndReserved(eventId, false);
+        return seatRepository.findByEventIdAndReserved(eventId, false).stream()
+                .map(SeatResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Seat> getAllSeats(Long eventId) {
+    public List<SeatResponse> getAllSeats(Long eventId) {
         validateEventExists(eventId);
-        return seatRepository.findByEventId(eventId);
+        return seatRepository.findByEventId(eventId).stream()
+                .map(SeatResponse::from)
+                .toList();
     }
 
     private void validateEventExists(Long eventId) {
