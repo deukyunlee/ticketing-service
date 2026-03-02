@@ -1,0 +1,37 @@
+@startuml event-flow-dlt
+!theme plain
+skinparam shadowing false
+skinparam defaultFontSize 12
+
+title DLT (Dead Letter Topic) 처리 흐름
+
+queue "원본 토픽" as ORIG
+queue ".DLT 토픽" as DLT
+participant "Consumer" as C
+participant "DLT\nConsumer" as DC
+
+ORIG -> C : 메시지 수신
+activate C
+C -> C : 처리 실패 (예외 발생)
+
+loop 3회 재시도 (1초 간격)
+  ORIG -> C : 재시도
+  C -> C : 실패
+end
+
+C -> DLT : .DLT 토픽으로 이동\n(DeadLetterPublishingRecoverer)
+deactivate C
+
+DLT -> DC : DLT 메시지 수신
+activate DC
+DC -> DC : 최종 처리\n(멱등성 보장)
+deactivate DC
+
+note right of DC
+  <b>서비스별 DLT 처리</b>
+  Payment: FAILED 저장 + 예약 취소
+  Ticket: 기존 로직 재시도
+  Reservation: 기존 로직 재시도
+end note
+
+@enduml

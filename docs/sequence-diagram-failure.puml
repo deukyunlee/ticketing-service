@@ -1,0 +1,41 @@
+@startuml event-flow-failure
+!theme plain
+skinparam shadowing false
+skinparam defaultFontSize 12
+
+title 예약 실패 흐름 (보상 트랜잭션)
+
+participant "Reservation\nService" as R
+queue "Kafka" as K
+participant "Ticket\nService" as T
+participant "Payment\nService" as P
+
+K -> T : reservation-requested
+activate T
+T -> T : Seat.reserved=true
+deactivate T
+
+K -> P : reservation-requested
+activate P
+P -> P : 결제 실패 (IllegalArgumentException)
+P -> P : Payment(FAILED) 저장
+P -> P : ApplicationEvent 발행
+deactivate P
+
+P -> K : payment-failed\n(@AfterCommit)
+
+K -> R : payment-failed
+activate R
+R -> R : Reservation(CANCELLED) 저장
+R -> R : ApplicationEvent 발행
+deactivate R
+
+R -> K : reservation-cancelled\n(@AfterCommit)
+
+K -> T : reservation-cancelled
+activate T
+T -> T : Seat.reserved=false\n(reservationId=null)
+note right : 보상 트랜잭션\n좌석 원복
+deactivate T
+
+@enduml
