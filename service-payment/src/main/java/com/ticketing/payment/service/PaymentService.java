@@ -30,6 +30,11 @@ public class PaymentService {
 
     @Transactional
     public void processPayment(ReservationRequestedEvent event) {
+        if (paymentRepository.findByReservationId(event.reservationId()).isPresent()) {
+            log.warn("Payment already exists for reservationId={}, skipping", event.reservationId());
+            return;
+        }
+
         String paymentId = UUID.randomUUID().toString();
 
         Payment payment = new Payment(

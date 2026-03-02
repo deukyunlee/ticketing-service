@@ -19,7 +19,7 @@ public class Payment {
     @Column(length = 36)
     private String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String reservationId;
 
     @Column(nullable = false)
