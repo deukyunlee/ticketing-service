@@ -10,29 +10,33 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TicketEventListener {
+public class TicketDltListener {
 
-    private static final Logger log = LoggerFactory.getLogger(TicketEventListener.class);
+    private static final Logger log = LoggerFactory.getLogger(TicketDltListener.class);
 
     private final SeatService seatService;
 
-    public TicketEventListener(SeatService seatService) {
+    public TicketDltListener(SeatService seatService) {
         this.seatService = seatService;
     }
 
-    @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC,
+    @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC + ".DLT",
+            groupId = "${spring.kafka.consumer.group-id}-dlt",
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
-    public void onReservationRequested(ReservationRequestedEvent event) {
-        log.info("Received reservation request: reservationId={}, eventId={}, seat={}",
+    public void onReservationRequestedDlt(ReservationRequestedEvent event) {
+        log.error("DLT: Failed to reserve seat after retries: reservationId={}, eventId={}, seat={}",
                 event.reservationId(), event.eventId(), event.seatNumber());
         seatService.reserveSeat(Long.parseLong(event.eventId()), event.seatNumber(), event.reservationId());
+        log.info("DLT: Seat reserved via DLT recovery: reservationId={}", event.reservationId());
     }
 
-    @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC,
+    @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC + ".DLT",
+            groupId = "${spring.kafka.consumer.group-id}-dlt",
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
-    public void onReservationCancelled(ReservationCancelledEvent event) {
-        log.info("Received reservation cancellation: reservationId={}, eventId={}, seat={}",
+    public void onReservationCancelledDlt(ReservationCancelledEvent event) {
+        log.error("DLT: Failed to release seat after retries: reservationId={}, eventId={}, seat={}",
                 event.reservationId(), event.eventId(), event.seatNumber());
         seatService.releaseSeat(Long.parseLong(event.eventId()), event.seatNumber());
+        log.info("DLT: Seat released via DLT recovery: reservationId={}", event.reservationId());
     }
 }

@@ -21,18 +21,23 @@ public class SeatService {
     }
 
     @Transactional
-    public void reserveSeat(Long eventId, String seatNumber) {
+    public void reserveSeat(Long eventId, String seatNumber, String reservationId) {
         Seat seat = seatRepository.findByEventIdAndSeatNumber(eventId, seatNumber)
                 .orElseThrow(() -> new BusinessException(TicketErrorCode.SEAT_NOT_FOUND,
                         "eventId=" + eventId + ", seat=" + seatNumber));
 
         if (seat.isReserved()) {
+            if (reservationId.equals(seat.getReservationId())) {
+                log.warn("Seat already reserved by same reservation: eventId={}, seat={}, reservationId={}, skipping",
+                        eventId, seatNumber, reservationId);
+                return;
+            }
             throw new BusinessException(TicketErrorCode.SEAT_ALREADY_RESERVED, seatNumber);
         }
 
-        seat.markReserved();
+        seat.markReserved(reservationId);
         seatRepository.save(seat);
-        log.info("Seat reserved: eventId={}, seat={}", eventId, seatNumber);
+        log.info("Seat reserved: eventId={}, seat={}, reservationId={}", eventId, seatNumber, reservationId);
     }
 
     @Transactional

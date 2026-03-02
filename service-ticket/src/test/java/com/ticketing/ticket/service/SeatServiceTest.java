@@ -11,8 +11,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,18 +31,30 @@ class SeatServiceTest {
         Seat seat = new Seat(1L, "A1");
         given(seatRepository.findByEventIdAndSeatNumber(1L, "A1")).willReturn(Optional.of(seat));
 
-        seatService.reserveSeat(1L, "A1");
+        seatService.reserveSeat(1L, "A1", "res-1");
 
         verify(seatRepository).save(seat);
+        assertThat(seat.getReservationId()).isEqualTo("res-1");
     }
 
     @Test
-    void reserveSeat_alreadyReserved_shouldThrow() {
+    void reserveSeat_sameReservation_shouldSkip() {
         Seat seat = new Seat(1L, "A1");
-        seat.markReserved();
+        seat.markReserved("res-1");
         given(seatRepository.findByEventIdAndSeatNumber(1L, "A1")).willReturn(Optional.of(seat));
 
-        assertThatThrownBy(() -> seatService.reserveSeat(1L, "A1"))
+        seatService.reserveSeat(1L, "A1", "res-1");
+
+        verify(seatRepository, never()).save(seat);
+    }
+
+    @Test
+    void reserveSeat_differentReservation_shouldThrow() {
+        Seat seat = new Seat(1L, "A1");
+        seat.markReserved("res-1");
+        given(seatRepository.findByEventIdAndSeatNumber(1L, "A1")).willReturn(Optional.of(seat));
+
+        assertThatThrownBy(() -> seatService.reserveSeat(1L, "A1", "res-2"))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("already reserved");
     }
@@ -48,11 +62,12 @@ class SeatServiceTest {
     @Test
     void releaseSeat_shouldMarkSeatAsAvailable() {
         Seat seat = new Seat(1L, "A1");
-        seat.markReserved();
+        seat.markReserved("res-1");
         given(seatRepository.findByEventIdAndSeatNumber(1L, "A1")).willReturn(Optional.of(seat));
 
         seatService.releaseSeat(1L, "A1");
 
         verify(seatRepository).save(seat);
+        assertThat(seat.getReservationId()).isNull();
     }
 }

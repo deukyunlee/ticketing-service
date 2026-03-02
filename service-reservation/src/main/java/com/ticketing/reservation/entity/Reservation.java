@@ -2,11 +2,18 @@ package com.ticketing.reservation.entity;
 
 import com.ticketing.common.ReservationStatus;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "reservations")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Reservation {
 
     @Id
@@ -32,9 +39,6 @@ public class Reservation {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    protected Reservation() {
-    }
-
     public Reservation(String id, String userId, String eventId,
                        String seatNumber, long price) {
         this.id = id;
@@ -46,15 +50,6 @@ public class Reservation {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
     }
-
-    public String getId() { return id; }
-    public String getUserId() { return userId; }
-    public String getEventId() { return eventId; }
-    public String getSeatNumber() { return seatNumber; }
-    public long getPrice() { return price; }
-    public ReservationStatus getStatus() { return status; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public void updateStatus(ReservationStatus status) {
         this.status = status;

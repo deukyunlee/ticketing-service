@@ -21,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -88,5 +89,29 @@ class ReservationServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().reservationId()).isEqualTo("res-1");
         assertThat(eventCaptor.getValue().reason()).isEqualTo("Payment failed");
+    }
+
+    @Test
+    void confirmReservation_alreadyConfirmed_shouldSkip() {
+        Reservation reservation = new Reservation("res-1", "user-1", "1", "A1", 50000);
+        reservation.updateStatus(ReservationStatus.CONFIRMED);
+        given(reservationRepository.findById("res-1")).willReturn(Optional.of(reservation));
+
+        reservationService.confirmReservation("res-1");
+
+        verify(reservationRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void cancelReservation_alreadyCancelled_shouldSkip() {
+        Reservation reservation = new Reservation("res-1", "user-1", "1", "A1", 50000);
+        reservation.updateStatus(ReservationStatus.CANCELLED);
+        given(reservationRepository.findById("res-1")).willReturn(Optional.of(reservation));
+
+        reservationService.cancelReservation("res-1", "Payment failed");
+
+        verify(reservationRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

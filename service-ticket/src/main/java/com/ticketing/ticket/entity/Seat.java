@@ -2,6 +2,7 @@ package com.ticketing.ticket.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
         @UniqueConstraint(columnNames = {"event_id", "seatNumber"})
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Seat {
 
     @Id
@@ -26,18 +28,22 @@ public class Seat {
     @Column(nullable = false)
     private boolean reserved;
 
+    private String reservationId;
+
     public Seat(Long eventId, String seatNumber) {
         this.eventId = eventId;
         this.seatNumber = seatNumber;
         this.reserved = false;
     }
 
-    public void markReserved() {
+    public void markReserved(String reservationId) {
         this.reserved = true;
+        this.reservationId = reservationId;
     }
 
     public void markAvailable() {
         this.reserved = false;
+        this.reservationId = null;
     }
 
 }
