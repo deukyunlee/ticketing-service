@@ -1,23 +1,13 @@
 package com.ticketing.common.event;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
 import java.time.LocalDateTime;
 
-@Getter
-@ToString
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-public class ReservationRequestedEvent {
+public record ReservationRequestedEvent (
 
-    private String reservationId;
-    private String userId;
-    private String eventId;
-    private String seatNumber;
-    private long price;
-    private LocalDateTime createdAt;
-}
+    String reservationId,
+    String userId,
+    String eventId,
+    String seatNumber,
+    long price,
+    LocalDateTime createdAt
+){}
