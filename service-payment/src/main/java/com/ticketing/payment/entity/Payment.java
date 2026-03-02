@@ -1,11 +1,18 @@
 package com.ticketing.payment.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "payments")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Payment {
 
     @Id
@@ -28,9 +35,6 @@ public class Payment {
     private String failReason;
     private LocalDateTime createdAt;
 
-    protected Payment() {
-    }
-
     public Payment(String id, String reservationId, String userId, long amount) {
         this.id = id;
         this.reservationId = reservationId;
@@ -39,14 +43,6 @@ public class Payment {
         this.status = PaymentStatus.PENDING;
         this.createdAt = LocalDateTime.now();
     }
-
-    public String getId() { return id; }
-    public String getReservationId() { return reservationId; }
-    public String getUserId() { return userId; }
-    public long getAmount() { return amount; }
-    public PaymentStatus getStatus() { return status; }
-    public String getFailReason() { return failReason; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void markCompleted() {
         this.status = PaymentStatus.COMPLETED;
