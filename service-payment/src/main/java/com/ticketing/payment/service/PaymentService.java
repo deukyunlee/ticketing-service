@@ -28,6 +28,9 @@ public class PaymentService {
         this.eventPublisher = eventPublisher;
     }
 
+    // TODO: DLQ 컨슈머 구현 필요
+    //  시스템 예외로 재시도가 모두 실패한 경우, DLQ에 쌓인 메시지를 소비하여
+    //  결제 상태를 확인하고 최종적으로 FAILED 처리 + 예약 취소 이벤트를 발행해야 함.
     @Transactional
     public void processPayment(ReservationRequestedEvent event) {
         if (paymentRepository.findByReservationId(event.reservationId()).isPresent()) {
@@ -44,18 +47,7 @@ public class PaymentService {
 
         try {
             simulatePayment(event.price());
-
-            payment.markCompleted();
-            paymentRepository.save(payment);
-
-            eventPublisher.publishEvent(new PaymentCompletedEvent(
-                    paymentId, event.reservationId(),
-                    event.userId(), event.price(), LocalDateTime.now()
-            ));
-            log.info("Payment completed: paymentId={}, reservationId={}",
-                    paymentId, event.reservationId());
-
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             payment.markFailed(e.getMessage());
             paymentRepository.save(payment);
 
@@ -63,9 +55,20 @@ public class PaymentService {
                     event.reservationId(), event.userId(),
                     e.getMessage(), LocalDateTime.now()
             ));
-            log.error("Payment failed: reservationId={}, reason={}",
+            log.warn("Payment failed: reservationId={}, reason={}",
                     event.reservationId(), e.getMessage());
+            return;
         }
+
+        payment.markCompleted();
+        paymentRepository.save(payment);
+
+        eventPublisher.publishEvent(new PaymentCompletedEvent(
+                paymentId, event.reservationId(),
+                event.userId(), event.price(), LocalDateTime.now()
+        ));
+        log.info("Payment completed: paymentId={}, reservationId={}",
+                paymentId, event.reservationId());
     }
 
     private void simulatePayment(long amount) {
