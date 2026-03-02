@@ -28,18 +28,22 @@ public class Seat {
     @Column(nullable = false)
     private boolean reserved;
 
+    private String reservationId;
+
     public Seat(Long eventId, String seatNumber) {
         this.eventId = eventId;
         this.seatNumber = seatNumber;
         this.reserved = false;
     }
 
-    public void markReserved() {
+    public void markReserved(String reservationId) {
         this.reserved = true;
+        this.reservationId = reservationId;
     }
 
     public void markAvailable() {
         this.reserved = false;
+        this.reservationId = null;
     }
 
 }

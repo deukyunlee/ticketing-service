@@ -56,6 +56,11 @@ public class ReservationService {
     public void confirmReservation(String reservationId) {
         Reservation reservation = findReservationById(reservationId);
 
+        if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+            log.warn("Reservation already confirmed: {}, skipping", reservationId);
+            return;
+        }
+
         reservation.updateStatus(ReservationStatus.CONFIRMED);
         reservationRepository.save(reservation);
 
@@ -69,6 +74,11 @@ public class ReservationService {
     @Transactional
     public void cancelReservation(String reservationId, String reason) {
         Reservation reservation = findReservationById(reservationId);
+
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            log.warn("Reservation already cancelled: {}, skipping", reservationId);
+            return;
+        }
 
         reservation.updateStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
