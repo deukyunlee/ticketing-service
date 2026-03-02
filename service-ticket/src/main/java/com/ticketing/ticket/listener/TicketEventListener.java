@@ -24,15 +24,15 @@ public class TicketEventListener {
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     public void onReservationRequested(ReservationRequestedEvent event) {
         log.info("Received reservation request: reservationId={}, eventId={}, seat={}",
-                event.getReservationId(), event.getEventId(), event.getSeatNumber());
-        seatService.reserveSeat(Long.parseLong(event.getEventId()), event.getSeatNumber());
+                event.reservationId(), event.eventId(), event.seatNumber());
+        seatService.reserveSeat(Long.parseLong(event.eventId()), event.seatNumber());
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC, groupId = "ticket-consumer-group",
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
     public void onReservationCancelled(ReservationCancelledEvent event) {
         log.info("Received reservation cancellation: reservationId={}, eventId={}, seat={}",
-                event.getReservationId(), event.getEventId(), event.getSeatNumber());
-        seatService.releaseSeat(Long.parseLong(event.getEventId()), event.getSeatNumber());
+                event.reservationId(), event.eventId(), event.seatNumber());
+        seatService.releaseSeat(Long.parseLong(event.eventId()), event.seatNumber());
     }
 }
