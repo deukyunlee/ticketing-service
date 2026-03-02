@@ -1,0 +1,44 @@
+@startuml event-flow-success
+!theme plain
+skinparam shadowing false
+skinparam defaultFontSize 12
+
+title 예약 성공 흐름
+
+actor Client
+participant "Reservation\nService" as R
+queue "Kafka" as K
+participant "Ticket\nService" as T
+participant "Payment\nService" as P
+
+Client -> R : POST /api/reservations
+activate R
+R -> R : Reservation(PENDING) 저장
+R -> R : ApplicationEvent 발행
+R --> Client : 200 OK (PENDING)
+deactivate R
+
+R -> K : reservation-requested\n(@AfterCommit)
+
+K -> T : reservation-requested
+activate T
+T -> T : Seat.reserved=true\n(reservationId 기록)
+deactivate T
+
+K -> P : reservation-requested
+activate P
+P -> P : Payment(COMPLETED) 저장
+P -> P : ApplicationEvent 발행
+deactivate P
+
+P -> K : payment-completed\n(@AfterCommit)
+
+K -> R : payment-completed
+activate R
+R -> R : Reservation(CONFIRMED) 저장
+R -> R : ApplicationEvent 발행
+deactivate R
+
+R -> K : reservation-confirmed\n(@AfterCommit)
+
+@enduml

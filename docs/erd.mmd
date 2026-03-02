@@ -1,0 +1,45 @@
+erDiagram
+    events {
+        BIGINT id PK "AUTO_INCREMENT"
+        VARCHAR title "NOT NULL"
+        VARCHAR description
+        VARCHAR venue "NOT NULL"
+        TIMESTAMP event_date "NOT NULL"
+        INT total_seats "NOT NULL"
+        BIGINT price "NOT NULL"
+        TIMESTAMP created_at
+    }
+
+    seats {
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT event_id FK "NOT NULL"
+        VARCHAR seat_number "NOT NULL"
+        TIMESTAMP created_at
+    }
+
+    reservations {
+        VARCHAR id PK "UUID"
+        VARCHAR user_id "NOT NULL"
+        BIGINT event_id FK "NOT NULL"
+        BIGINT seat_id FK "NOT NULL"
+        BIGINT price "NOT NULL"
+        VARCHAR status "PENDING / CONFIRMED / CANCELLED"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    payments {
+        VARCHAR id PK "UUID"
+        VARCHAR reservation_id FK "NOT NULL"
+        VARCHAR user_id "NOT NULL"
+        BIGINT amount "NOT NULL"
+        VARCHAR status "PENDING / COMPLETED / FAILED"
+        VARCHAR fail_reason
+        TIMESTAMP created_at
+    }
+
+    %% Relationships
+    events ||--o{ seats : "1:N"
+    events ||--o{ reservations : "1:N"
+    seats ||--|| reservations : "1:1"
+    reservations ||--o{ payments : "1:N"
