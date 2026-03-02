@@ -21,7 +21,7 @@ public class TicketDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC + ".DLT",
-            groupId = "ticket-dlt-consumer-group",
+            groupId = "${spring.kafka.consumer.group-id}-dlt",
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     public void onReservationRequestedDlt(ReservationRequestedEvent event) {
         log.error("DLT: Failed to reserve seat after retries: reservationId={}, eventId={}, seat={}",
@@ -31,7 +31,7 @@ public class TicketDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC + ".DLT",
-            groupId = "ticket-dlt-consumer-group",
+            groupId = "${spring.kafka.consumer.group-id}-dlt",
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
     public void onReservationCancelledDlt(ReservationCancelledEvent event) {
         log.error("DLT: Failed to release seat after retries: reservationId={}, eventId={}, seat={}",

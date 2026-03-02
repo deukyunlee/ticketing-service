@@ -19,7 +19,7 @@ public class PaymentEventListener {
         this.paymentService = paymentService;
     }
 
-    @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC, groupId = "payment-consumer-group",
+    @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC,
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     public void onReservationRequested(ReservationRequestedEvent event) {
         log.info("Received reservation request for payment: reservationId={}, amount={}",

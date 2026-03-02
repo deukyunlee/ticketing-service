@@ -20,7 +20,7 @@ public class TicketEventListener {
         this.seatService = seatService;
     }
 
-    @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC, groupId = "ticket-consumer-group",
+    @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC,
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     public void onReservationRequested(ReservationRequestedEvent event) {
         log.info("Received reservation request: reservationId={}, eventId={}, seat={}",
@@ -28,7 +28,7 @@ public class TicketEventListener {
         seatService.reserveSeat(Long.parseLong(event.eventId()), event.seatNumber(), event.reservationId());
     }
 
-    @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC, groupId = "ticket-consumer-group",
+    @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC,
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
     public void onReservationCancelled(ReservationCancelledEvent event) {
         log.info("Received reservation cancellation: reservationId={}, eventId={}, seat={}",

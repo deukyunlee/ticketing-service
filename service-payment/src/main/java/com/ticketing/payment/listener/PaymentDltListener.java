@@ -30,7 +30,7 @@ public class PaymentDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC + ".DLT",
-            groupId = "payment-dlt-consumer-group",
+            groupId = "${spring.kafka.consumer.group-id}-dlt",
             properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     @Transactional
     public void onReservationRequestedDlt(ReservationRequestedEvent event) {
