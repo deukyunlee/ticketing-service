@@ -33,11 +33,12 @@ public class KafkaErrorConfig {
 
         errorHandler.setRetryListeners((record, ex, deliveryAttempt) ->
             log.warn(
-                "Retry attempt {} for topic={}, partition={}, offset={}",
+                "Retry attempt {} for topic={}, partition={}, offset={}: {}",
                 deliveryAttempt,
                 record.topic(),
                 record.partition(),
-                record.offset()
+                record.offset(),
+                ex.getMessage()
             )
         );
 
