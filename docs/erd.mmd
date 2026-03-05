@@ -30,7 +30,7 @@ erDiagram
 
     payments {
         VARCHAR id PK "UUID"
-        VARCHAR reservation_id FK "NOT NULL"
+        VARCHAR reservation_id FK, UK "NOT NULL"
         VARCHAR user_id "NOT NULL"
         BIGINT amount "NOT NULL"
         VARCHAR status "PENDING / COMPLETED / FAILED"
@@ -42,4 +42,4 @@ erDiagram
     events ||--o{ seats : "1:N"
     events ||--o{ reservations : "1:N"
     seats ||--|| reservations : "1:1"
-    reservations ||--o{ payments : "1:N"
+    reservations ||--|| payments : "1:1"
