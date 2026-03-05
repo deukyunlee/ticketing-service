@@ -1,0 +1,31 @@
+name: Java Format Check
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download google-java-format
+        run: |
+          GJF_VERSION=1.22.0
+          curl -L -o google-java-format.jar \
+            https://github.com/google/google-java-format/releases/download/v${GJF_VERSION}/google-java-format-${GJF_VERSION}-all-deps.jar
+
+      - name: Check formatting
+        run: |
+          git ls-files '**/*.java' | xargs \
+            java -jar google-java-format.jar --dry-run --set-exit-if-changed
