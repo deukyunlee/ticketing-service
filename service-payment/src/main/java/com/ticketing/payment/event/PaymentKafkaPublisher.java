@@ -28,24 +28,24 @@ public class PaymentKafkaPublisher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentCompleted(PaymentCompletedEvent event) {
         kafkaTemplate.send(KafkaConstants.PAYMENT_COMPLETED_TOPIC, event.reservationId(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish payment-completed: reservationId={}", event.reservationId(), ex);
-                    } else {
-                        log.info("Published payment-completed: reservationId={}", event.reservationId());
-                    }
-                });
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to publish payment-completed: reservationId={}", event.reservationId(), ex);
+                } else {
+                    log.info("Published payment-completed: reservationId={}", event.reservationId());
+                }
+            });
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentFailed(PaymentFailedEvent event) {
         kafkaTemplate.send(KafkaConstants.PAYMENT_FAILED_TOPIC, event.reservationId(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish payment-failed: reservationId={}", event.reservationId(), ex);
-                    } else {
-                        log.info("Published payment-failed: reservationId={}", event.reservationId());
-                    }
-                });
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to publish payment-failed: reservationId={}", event.reservationId(), ex);
+                } else {
+                    log.info("Published payment-failed: reservationId={}", event.reservationId());
+                }
+            });
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class TicketDltListener {
 
     private static final Logger log = LoggerFactory.getLogger(TicketDltListener.class);
-
+    
     private final SeatService seatService;
 
     public TicketDltListener(SeatService seatService) {
@@ -21,21 +21,21 @@ public class TicketDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC + ".DLT",
-            groupId = "${spring.kafka.consumer.group-id}-dlt",
-            properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
+        groupId = "${spring.kafka.consumer.group-id}-dlt",
+        properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     public void onReservationRequestedDlt(ReservationRequestedEvent event) {
         log.error("DLT: Failed to reserve seat after retries: reservationId={}, eventId={}, seat={}",
-                event.reservationId(), event.eventId(), event.seatNumber());
+            event.reservationId(), event.eventId(), event.seatNumber());
         seatService.reserveSeat(Long.parseLong(event.eventId()), event.seatNumber(), event.reservationId());
         log.info("DLT: Seat reserved via DLT recovery: reservationId={}", event.reservationId());
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC + ".DLT",
-            groupId = "${spring.kafka.consumer.group-id}-dlt",
-            properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
+        groupId = "${spring.kafka.consumer.group-id}-dlt",
+        properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
     public void onReservationCancelledDlt(ReservationCancelledEvent event) {
         log.error("DLT: Failed to release seat after retries: reservationId={}, eventId={}, seat={}",
-                event.reservationId(), event.eventId(), event.seatNumber());
+            event.reservationId(), event.eventId(), event.seatNumber());
         seatService.releaseSeat(Long.parseLong(event.eventId()), event.seatNumber());
         log.info("DLT: Seat released via DLT recovery: reservationId={}", event.reservationId());
     }

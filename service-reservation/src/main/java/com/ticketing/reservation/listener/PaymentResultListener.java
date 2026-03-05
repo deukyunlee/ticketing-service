@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class PaymentResultListener {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentResultListener.class);
-
+    
     private final ReservationService reservationService;
 
     public PaymentResultListener(ReservationService reservationService) {
@@ -21,18 +21,18 @@ public class PaymentResultListener {
     }
 
     @KafkaListener(topics = KafkaConstants.PAYMENT_COMPLETED_TOPIC,
-            properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentCompletedEvent")
+        properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentCompletedEvent")
     public void onPaymentCompleted(PaymentCompletedEvent event) {
         log.info("Payment completed: paymentId={}, reservationId={}",
-                event.paymentId(), event.reservationId());
+            event.paymentId(), event.reservationId());
         reservationService.confirmReservation(event.reservationId());
     }
 
     @KafkaListener(topics = KafkaConstants.PAYMENT_FAILED_TOPIC,
-            properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentFailedEvent")
+        properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentFailedEvent")
     public void onPaymentFailed(PaymentFailedEvent event) {
         log.info("Payment failed: reservationId={}, reason={}",
-                event.reason(), event.reason());
+            event.reason(), event.reason());
         reservationService.cancelReservation(event.reservationId(), event.reason());
     }
 }

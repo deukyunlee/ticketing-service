@@ -17,7 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 //  Outbox 테이블에 이벤트를 저장하고 별도 폴링으로 Kafka에 발행하는 방식으로 개선 필요.
 @Component
 public class ReservationKafkaPublisher {
-
+    
     private static final Logger log = LoggerFactory.getLogger(ReservationKafkaPublisher.class);
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -29,39 +29,39 @@ public class ReservationKafkaPublisher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReservationRequested(ReservationRequestedEvent event) {
         kafkaTemplate.send(KafkaConstants.RESERVATION_REQUESTED_TOPIC, event.reservationId(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish reservation-requested: {}", event.reservationId(), ex);
-                    } else {
-                        log.info("Published reservation-requested: id={}, partition={}, offset={}",
-                                event.reservationId(),
-                                result.getRecordMetadata().partition(),
-                                result.getRecordMetadata().offset());
-                    }
-                });
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to publish reservation-requested: {}", event.reservationId(), ex);
+                } else {
+                    log.info("Published reservation-requested: id={}, partition={}, offset={}",
+                        event.reservationId(),
+                        result.getRecordMetadata().partition(),
+                        result.getRecordMetadata().offset());
+                }
+            });
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReservationConfirmed(ReservationConfirmedEvent event) {
         kafkaTemplate.send(KafkaConstants.RESERVATION_CONFIRMED_TOPIC, event.reservationId(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish reservation-confirmed: {}", event.reservationId(), ex);
-                    } else {
-                        log.info("Published reservation-confirmed: id={}", event.reservationId());
-                    }
-                });
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to publish reservation-confirmed: {}", event.reservationId(), ex);
+                } else {
+                    log.info("Published reservation-confirmed: id={}", event.reservationId());
+                }
+            });
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReservationCancelled(ReservationCancelledEvent event) {
         kafkaTemplate.send(KafkaConstants.RESERVATION_CANCELLED_TOPIC, event.reservationId(), event)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish reservation-cancelled: {}", event.reservationId(), ex);
-                    } else {
-                        log.info("Published reservation-cancelled: id={}", event.reservationId());
-                    }
-                });
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to publish reservation-cancelled: {}", event.reservationId(), ex);
+                } else {
+                    log.info("Published reservation-cancelled: id={}", event.reservationId());
+                }
+            });
     }
 }

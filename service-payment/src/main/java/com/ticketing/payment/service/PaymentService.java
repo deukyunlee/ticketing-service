@@ -5,14 +5,13 @@ import com.ticketing.common.event.PaymentFailedEvent;
 import com.ticketing.common.event.ReservationRequestedEvent;
 import com.ticketing.payment.entity.Payment;
 import com.ticketing.payment.repository.PaymentRepository;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 public class PaymentService {
@@ -38,8 +37,8 @@ public class PaymentService {
         String paymentId = UUID.randomUUID().toString();
 
         Payment payment = new Payment(
-                paymentId, event.reservationId(),
-                event.userId(), event.price()
+            paymentId, event.reservationId(),
+            event.userId(), event.price()
         );
 
         try {
@@ -49,11 +48,11 @@ public class PaymentService {
             paymentRepository.save(payment);
 
             eventPublisher.publishEvent(new PaymentFailedEvent(
-                    event.reservationId(), event.userId(),
-                    e.getMessage(), LocalDateTime.now()
+                event.reservationId(), event.userId(),
+                e.getMessage(), LocalDateTime.now()
             ));
             log.warn("Payment failed: reservationId={}, reason={}",
-                    event.reservationId(), e.getMessage());
+                event.reservationId(), e.getMessage());
             return;
         }
 
@@ -61,11 +60,11 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         eventPublisher.publishEvent(new PaymentCompletedEvent(
-                paymentId, event.reservationId(),
-                event.userId(), event.price(), LocalDateTime.now()
+            paymentId, event.reservationId(),
+            event.userId(), event.price(), LocalDateTime.now()
         ));
         log.info("Payment completed: paymentId={}, reservationId={}",
-                paymentId, event.reservationId());
+            paymentId, event.reservationId());
     }
 
     private void simulatePayment(long amount) {

@@ -6,7 +6,7 @@ public enum TicketErrorCode implements ErrorCode {
 
     // Event 1000~1099
     EVENT_NOT_FOUND(1000, 404, "Event not found"),
-
+    
     // Seat 1100~1199
     SEAT_NOT_FOUND(1100, 404, "Seat not found"),
     SEAT_ALREADY_RESERVED(1101, 409, "Seat already reserved");
@@ -22,9 +22,17 @@ public enum TicketErrorCode implements ErrorCode {
     }
 
     @Override
-    public int getCode() { return code; }
+    public int getCode() {
+        return code;
+    }
+
     @Override
-    public int getStatus() { return status; }
+    public int getStatus() {
+        return status;
+    }
+
     @Override
-    public String getMessage() { return message; }
+    public String getMessage() {
+        return message;
+    }
 }

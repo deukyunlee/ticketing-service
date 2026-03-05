@@ -1,25 +1,24 @@
 package com.ticketing.ticket.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+
 import com.ticketing.ticket.dto.CreateEventRequest;
 import com.ticketing.ticket.dto.EventResponse;
 import com.ticketing.ticket.entity.Event;
 import com.ticketing.ticket.entity.Seat;
 import com.ticketing.ticket.repository.EventRepository;
 import com.ticketing.ticket.repository.SeatRepository;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class EventServiceTest {
@@ -36,12 +35,12 @@ class EventServiceTest {
     @Test
     void createEvent_shouldSaveEventAndCreateSeats() {
         CreateEventRequest request = new CreateEventRequest(
-                "Concert", "Great show", "Hall A",
-                LocalDateTime.of(2026, 6, 1, 19, 0), 3, 50000
+            "Concert", "Great show", "Hall A",
+            LocalDateTime.of(2026, 6, 1, 19, 0), 3, 50000
         );
 
         Event savedEvent = new Event("Concert", "Great show", "Hall A",
-                LocalDateTime.of(2026, 6, 1, 19, 0), 3, 50000);
+            LocalDateTime.of(2026, 6, 1, 19, 0), 3, 50000);
         given(eventRepository.save(any(Event.class))).willReturn(savedEvent);
 
         EventResponse response = eventService.createEvent(request);

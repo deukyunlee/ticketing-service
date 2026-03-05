@@ -10,15 +10,14 @@ import com.ticketing.reservation.dto.ReservationResponse;
 import com.ticketing.reservation.entity.Reservation;
 import com.ticketing.reservation.exception.ReservationErrorCode;
 import com.ticketing.reservation.repository.ReservationRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ReservationService {
@@ -39,14 +38,14 @@ public class ReservationService {
         String reservationId = UUID.randomUUID().toString();
 
         Reservation reservation = new Reservation(
-                reservationId, request.userId(), request.eventId(),
-                request.seatNumber(), request.price()
+            reservationId, request.userId(), request.eventId(),
+            request.seatNumber(), request.price()
         );
         reservationRepository.save(reservation);
 
         eventPublisher.publishEvent(new ReservationRequestedEvent(
-                reservationId, request.userId(), request.eventId(),
-                request.seatNumber(), request.price(), LocalDateTime.now()
+            reservationId, request.userId(), request.eventId(),
+            request.seatNumber(), request.price(), LocalDateTime.now()
         ));
 
         return ReservationResponse.from(reservation);
@@ -65,8 +64,8 @@ public class ReservationService {
         reservationRepository.save(reservation);
 
         eventPublisher.publishEvent(new ReservationConfirmedEvent(
-                reservationId, reservation.getUserId(),
-                reservation.getEventId(), reservation.getSeatNumber(), LocalDateTime.now()
+            reservationId, reservation.getUserId(),
+            reservation.getEventId(), reservation.getSeatNumber(), LocalDateTime.now()
         ));
         log.info("Reservation confirmed: {}", reservationId);
     }
@@ -84,8 +83,8 @@ public class ReservationService {
         reservationRepository.save(reservation);
 
         eventPublisher.publishEvent(new ReservationCancelledEvent(
-                reservationId, reservation.getUserId(),
-                reservation.getEventId(), reservation.getSeatNumber(), reason, LocalDateTime.now()
+            reservationId, reservation.getUserId(),
+            reservation.getEventId(), reservation.getSeatNumber(), reason, LocalDateTime.now()
         ));
         log.info("Reservation cancelled: id={}, reason={}", reservationId, reason);
     }
@@ -98,12 +97,12 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<ReservationResponse> getReservationsByUser(String userId) {
         return reservationRepository.findByUserId(userId).stream()
-                .map(ReservationResponse::from)
-                .toList();
+            .map(ReservationResponse::from)
+            .toList();
     }
 
     private Reservation findReservationById(String reservationId) {
         return reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND, reservationId));
+            .orElseThrow(() -> new BusinessException(ReservationErrorCode.RESERVATION_NOT_FOUND, reservationId));
     }
 }

@@ -1,7 +1,11 @@
 package com.ticketing.ticket.entity;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,7 +25,7 @@ public class Event {
 
     @Column(nullable = false)
     private String title;
-
+    
     private String description;
 
     @Column(nullable = false)
@@ -39,7 +43,7 @@ public class Event {
     private LocalDateTime createdAt;
 
     public Event(String title, String description, String venue,
-        LocalDateTime eventDate, int totalSeats, long price) {
+                 LocalDateTime eventDate, int totalSeats, long price) {
         this.title = title;
         this.description = description;
         this.venue = venue;

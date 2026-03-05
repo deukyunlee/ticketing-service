@@ -15,24 +15,24 @@ public class TicketEventListener {
     private static final Logger log = LoggerFactory.getLogger(TicketEventListener.class);
 
     private final SeatService seatService;
-
+    
     public TicketEventListener(SeatService seatService) {
         this.seatService = seatService;
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC,
-            properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
+        properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     public void onReservationRequested(ReservationRequestedEvent event) {
         log.info("Received reservation request: reservationId={}, eventId={}, seat={}",
-                event.reservationId(), event.eventId(), event.seatNumber());
+            event.reservationId(), event.eventId(), event.seatNumber());
         seatService.reserveSeat(Long.parseLong(event.eventId()), event.seatNumber(), event.reservationId());
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_CANCELLED_TOPIC,
-            properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
+        properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationCancelledEvent")
     public void onReservationCancelled(ReservationCancelledEvent event) {
         log.info("Received reservation cancellation: reservationId={}, eventId={}, seat={}",
-                event.reservationId(), event.eventId(), event.seatNumber());
+            event.reservationId(), event.eventId(), event.seatNumber());
         seatService.releaseSeat(Long.parseLong(event.eventId()), event.seatNumber());
     }
 }

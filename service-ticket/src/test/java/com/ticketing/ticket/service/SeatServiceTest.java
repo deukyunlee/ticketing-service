@@ -1,21 +1,20 @@
 package com.ticketing.ticket.service;
 
-import com.ticketing.common.exception.BusinessException;
-import com.ticketing.ticket.entity.Seat;
-import com.ticketing.ticket.repository.SeatRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import com.ticketing.common.exception.BusinessException;
+import com.ticketing.ticket.entity.Seat;
+import com.ticketing.ticket.repository.SeatRepository;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SeatServiceTest {
@@ -55,8 +54,8 @@ class SeatServiceTest {
         given(seatRepository.findByEventIdAndSeatNumber(1L, "A1")).willReturn(Optional.of(seat));
 
         assertThatThrownBy(() -> seatService.reserveSeat(1L, "A1", "res-2"))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("already reserved");
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("already reserved");
     }
 
     @Test

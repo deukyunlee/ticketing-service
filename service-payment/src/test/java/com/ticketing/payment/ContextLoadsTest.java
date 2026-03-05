@@ -12,7 +12,7 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 @SpringBootTest
 class ContextLoadsTest {
-
+    
     @Container
     static final KafkaContainer kafka = new KafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.5.0")

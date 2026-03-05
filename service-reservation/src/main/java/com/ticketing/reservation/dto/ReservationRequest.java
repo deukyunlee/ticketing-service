@@ -17,4 +17,5 @@ public record ReservationRequest(
     @Min(0)
     long price
 ) {
+
 }

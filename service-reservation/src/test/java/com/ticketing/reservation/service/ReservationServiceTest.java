@@ -1,5 +1,11 @@
 package com.ticketing.reservation.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.ticketing.common.ReservationStatus;
 import com.ticketing.common.event.ReservationCancelledEvent;
 import com.ticketing.common.event.ReservationConfirmedEvent;
@@ -8,6 +14,7 @@ import com.ticketing.reservation.dto.ReservationRequest;
 import com.ticketing.reservation.dto.ReservationResponse;
 import com.ticketing.reservation.entity.Reservation;
 import com.ticketing.reservation.repository.ReservationRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,14 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ReservationServiceTest {
@@ -40,7 +39,8 @@ class ReservationServiceTest {
     void createReservation_shouldSaveAndPublishEvent() {
         ReservationRequest request = new ReservationRequest("user-1", "1", "A1", 50000);
         ArgumentCaptor<Reservation> reservationCaptor = ArgumentCaptor.forClass(Reservation.class);
-        ArgumentCaptor<ReservationRequestedEvent> eventCaptor = ArgumentCaptor.forClass(ReservationRequestedEvent.class);
+        ArgumentCaptor<ReservationRequestedEvent> eventCaptor = ArgumentCaptor.forClass(
+            ReservationRequestedEvent.class);
 
         ReservationResponse result = reservationService.createReservation(request);
 
@@ -70,7 +70,8 @@ class ReservationServiceTest {
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
         verify(reservationRepository).save(reservation);
 
-        ArgumentCaptor<ReservationConfirmedEvent> eventCaptor = ArgumentCaptor.forClass(ReservationConfirmedEvent.class);
+        ArgumentCaptor<ReservationConfirmedEvent> eventCaptor = ArgumentCaptor.forClass(
+            ReservationConfirmedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().reservationId()).isEqualTo("res-1");
     }
@@ -85,7 +86,8 @@ class ReservationServiceTest {
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
         verify(reservationRepository).save(reservation);
 
-        ArgumentCaptor<ReservationCancelledEvent> eventCaptor = ArgumentCaptor.forClass(ReservationCancelledEvent.class);
+        ArgumentCaptor<ReservationCancelledEvent> eventCaptor = ArgumentCaptor.forClass(
+            ReservationCancelledEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().reservationId()).isEqualTo("res-1");
         assertThat(eventCaptor.getValue().reason()).isEqualTo("Payment failed");

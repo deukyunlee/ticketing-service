@@ -1,10 +1,17 @@
 package com.ticketing.payment.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.ticketing.common.event.PaymentCompletedEvent;
 import com.ticketing.common.event.PaymentFailedEvent;
 import com.ticketing.common.event.ReservationRequestedEvent;
 import com.ticketing.payment.entity.Payment;
 import com.ticketing.payment.repository.PaymentRepository;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -12,14 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -36,7 +35,7 @@ class PaymentServiceTest {
     @Test
     void processPayment_success_shouldPublishCompletedEvent() {
         ReservationRequestedEvent event = new ReservationRequestedEvent(
-                "res-1", "user-1", "1", "A1", 50000, LocalDateTime.now()
+            "res-1", "user-1", "1", "A1", 50000, LocalDateTime.now()
         );
 
         paymentService.processPayment(event);
@@ -55,7 +54,7 @@ class PaymentServiceTest {
     @Test
     void processPayment_invalidAmount_shouldPublishFailedEvent() {
         ReservationRequestedEvent event = new ReservationRequestedEvent(
-                "res-1", "user-1", "1", "A1", 0, LocalDateTime.now()
+            "res-1", "user-1", "1", "A1", 0, LocalDateTime.now()
         );
 
         paymentService.processPayment(event);
@@ -73,7 +72,7 @@ class PaymentServiceTest {
     @Test
     void processPayment_duplicateReservation_shouldSkip() {
         ReservationRequestedEvent event = new ReservationRequestedEvent(
-                "res-1", "user-1", "1", "A1", 50000, LocalDateTime.now()
+            "res-1", "user-1", "1", "A1", 50000, LocalDateTime.now()
         );
         Payment existing = new Payment("pay-1", "res-1", "user-1", 50000);
         given(paymentRepository.findByReservationId("res-1")).willReturn(Optional.of(existing));

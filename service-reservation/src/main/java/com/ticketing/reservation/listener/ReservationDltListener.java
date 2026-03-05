@@ -21,8 +21,8 @@ public class ReservationDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.PAYMENT_COMPLETED_TOPIC + ".DLT",
-            groupId = "${spring.kafka.consumer.group-id}-dlt",
-            properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentCompletedEvent")
+        groupId = "${spring.kafka.consumer.group-id}-dlt",
+        properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentCompletedEvent")
     public void onPaymentCompletedDlt(PaymentCompletedEvent event) {
         log.error("DLT: Failed to confirm reservation after retries: reservationId={}", event.reservationId());
         reservationService.confirmReservation(event.reservationId());
@@ -30,8 +30,8 @@ public class ReservationDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.PAYMENT_FAILED_TOPIC + ".DLT",
-            groupId = "${spring.kafka.consumer.group-id}-dlt",
-            properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentFailedEvent")
+        groupId = "${spring.kafka.consumer.group-id}-dlt",
+        properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentFailedEvent")
     public void onPaymentFailedDlt(PaymentFailedEvent event) {
         log.error("DLT: Failed to cancel reservation after retries: reservationId={}", event.reservationId());
         reservationService.cancelReservation(event.reservationId(), event.reason());

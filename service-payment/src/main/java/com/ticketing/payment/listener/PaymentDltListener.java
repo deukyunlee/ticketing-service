@@ -5,15 +5,14 @@ import com.ticketing.common.event.PaymentFailedEvent;
 import com.ticketing.common.event.ReservationRequestedEvent;
 import com.ticketing.payment.entity.Payment;
 import com.ticketing.payment.repository.PaymentRepository;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Component
 public class PaymentDltListener {
@@ -30,8 +29,8 @@ public class PaymentDltListener {
     }
 
     @KafkaListener(topics = KafkaConstants.RESERVATION_REQUESTED_TOPIC + ".DLT",
-            groupId = "${spring.kafka.consumer.group-id}-dlt",
-            properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
+        groupId = "${spring.kafka.consumer.group-id}-dlt",
+        properties = "spring.json.value.default.type=com.ticketing.common.event.ReservationRequestedEvent")
     @Transactional
     public void onReservationRequestedDlt(ReservationRequestedEvent event) {
         log.error("DLT: Processing failed reservation-requested: reservationId={}", event.reservationId());
@@ -47,8 +46,8 @@ public class PaymentDltListener {
         paymentRepository.save(payment);
 
         eventPublisher.publishEvent(new PaymentFailedEvent(
-                event.reservationId(), event.userId(),
-                "Payment processing failed after retries", LocalDateTime.now()
+            event.reservationId(), event.userId(),
+            "Payment processing failed after retries", LocalDateTime.now()
         ));
         log.info("DLT: Payment marked as FAILED and event published: reservationId={}", event.reservationId());
     }
