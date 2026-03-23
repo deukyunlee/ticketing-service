@@ -110,9 +110,10 @@ H2_PASSWORD=your_password_here
 |---|---|---|
 | `POST` | `/api/reservations` | 예약 생성 |
 | `GET` | `/api/reservations/{id}` | 예약 단건 조회 |
-| `GET` | `/api/reservations/user/{userId}` | 사용자별 예약 목록 조회 |
+| `GET` | `/api/reservations/me` | 내 예약 목록 조회 |
 
 > API 테스트 파일: [`http/service-ticket.http`](./http/service-ticket.http), [`http/service-reservation.http`](./http/service-reservation.http)
+> `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
 
 ## Event Flow
 

@@ -35,17 +35,17 @@ public class ReservationService {
     }
 
     @Transactional
-    public ReservationResponse createReservation(ReservationRequest request) {
+    public ReservationResponse createReservation(String userId, ReservationRequest request) {
         String reservationId = UUID.randomUUID().toString();
 
         Reservation reservation = new Reservation(
-                reservationId, request.userId(), request.eventId(),
+                reservationId, userId, request.eventId(),
                 request.seatNumber(), request.price()
         );
         reservationRepository.save(reservation);
 
         eventPublisher.publishEvent(new ReservationRequestedEvent(
-                reservationId, request.userId(), request.eventId(),
+                reservationId, userId, request.eventId(),
                 request.seatNumber(), request.price(), LocalDateTime.now()
         ));
 

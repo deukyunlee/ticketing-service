@@ -20,8 +20,11 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody ReservationRequest request) {
-        return ResponseEntity.ok(reservationService.createReservation(request));
+    public ResponseEntity<ReservationResponse> createReservation(
+            @RequestHeader("X-User-Id") String userId,
+            @Valid @RequestBody ReservationRequest request
+    ) {
+        return ResponseEntity.ok(reservationService.createReservation(userId, request));
     }
 
     @GetMapping("/{reservationId}")
@@ -29,8 +32,8 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservation(reservationId));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReservationResponse>> getReservationsByUser(@PathVariable String userId) {
+    @GetMapping("/me")
+    public ResponseEntity<List<ReservationResponse>> getMyReservations(@RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(reservationService.getReservationsByUser(userId));
     }
 }
