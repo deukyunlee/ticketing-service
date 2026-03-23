@@ -1,7 +1,7 @@
 # Ticketing Service
 
 Kafka 기반 Choreography Saga 패턴으로 동작하는 티켓 예약 시스템.
-3개의 독립된 마이크로서비스가 각자의 데이터베이스를 소유하며, 서비스 간 통신은 Kafka 이벤트로만 이루어진다.
+API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베이스를 소유하며, 서비스 간 통신은 Kafka 이벤트로만 이루어진다.
 
 ## Architecture
 
@@ -24,6 +24,7 @@ Kafka 기반 Choreography Saga 패턴으로 동작하는 티켓 예약 시스템
 ```
 ticketing-service/
 ├── common/                          # 공유 모듈 (이벤트, 예외, 상수)
+├── service-gateway/                 # API Gateway (인증/라우팅)
 ├── service-ticket/                  # 공연/좌석 관리
 ├── service-reservation/             # 예약 관리
 ├── service-payment/                 # 결제 처리
@@ -78,6 +79,7 @@ H2_PASSWORD=your_password_here
 ./gradlew build
 
 # 각 서비스 실행 (별도 터미널)
+./gradlew :service-gateway:bootRun
 ./gradlew :service-ticket:bootRun
 ./gradlew :service-reservation:bootRun
 ./gradlew :service-payment:bootRun
@@ -85,6 +87,7 @@ H2_PASSWORD=your_password_here
 
 | 서비스 | 포트 | H2 Console |
 |---|---|---|
+| service-gateway | 8089 | - |
 | service-ticket | 8080 | http://localhost:8080/h2-console |
 | service-reservation | 8081 | http://localhost:8081/h2-console |
 | service-payment | 8082 | http://localhost:8082/h2-console |
@@ -107,9 +110,18 @@ H2_PASSWORD=your_password_here
 |---|---|---|
 | `POST` | `/api/reservations` | 예약 생성 |
 | `GET` | `/api/reservations/{id}` | 예약 단건 조회 |
-| `GET` | `/api/reservations/user/{userId}` | 사용자별 예약 목록 조회 |
+| `GET` | `/api/reservations/me` | 내 예약 목록 조회 |
+| `GET` | `/api/admin/reservations/user/{userId}` | 관리자용 사용자별 예약 목록 조회 |
 
 > API 테스트 파일: [`http/service-ticket.http`](./http/service-ticket.http), [`http/service-reservation.http`](./http/service-reservation.http)
+> `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
+> Gateway 호출 시에는 `Authorization: Bearer <JWT>` 헤더를 사용한다.
+
+## Gateway Policies
+
+- 인증: `/api/**`는 JWT 인증 필수
+- 권한: `POST /api/events/**`, `/api/admin/**`는 `ADMIN` 권한 필요
+- 요청 제한: 기본 `60 req / 60 sec` (사용자 또는 IP 기준)
 
 ## Event Flow
 

@@ -38,11 +38,11 @@ class ReservationServiceTest {
 
     @Test
     void createReservation_shouldSaveAndPublishEvent() {
-        ReservationRequest request = new ReservationRequest("user-1", "1", "A1", 50000);
+        ReservationRequest request = new ReservationRequest("1", "A1", 50000);
         ArgumentCaptor<Reservation> reservationCaptor = ArgumentCaptor.forClass(Reservation.class);
         ArgumentCaptor<ReservationRequestedEvent> eventCaptor = ArgumentCaptor.forClass(ReservationRequestedEvent.class);
 
-        ReservationResponse result = reservationService.createReservation(request);
+        ReservationResponse result = reservationService.createReservation("user-1", request);
 
         assertThat(result.userId()).isEqualTo("user-1");
         assertThat(result.eventId()).isEqualTo("1");

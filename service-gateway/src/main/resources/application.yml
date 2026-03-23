@@ -1,0 +1,38 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: service-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:9000/oauth2/jwks}
+  cloud:
+    gateway:
+      routes:
+        - id: reservation-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/reservations/**
+        - id: admin-reservation-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/admin/reservations/**
+        - id: ticket-service
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/events/**
+
+app:
+  rate-limit:
+    max-requests: 60
+    window-seconds: 60
+    max-keys: 10000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
