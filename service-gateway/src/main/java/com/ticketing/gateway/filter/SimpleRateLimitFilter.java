@@ -1,5 +1,8 @@
 package com.ticketing.gateway.filter;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
@@ -8,20 +11,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 public class SimpleRateLimitFilter {
 
-    private final Map<String, WindowCounter> counters = new ConcurrentHashMap<>();
+    private Cache<String, WindowCounter> counters;
 
     @Value("${app.rate-limit.max-requests:60}")
     private int maxRequests;
 
     @Value("${app.rate-limit.window-seconds:60}")
     private int windowSeconds;
+
+    @Value("${app.rate-limit.max-keys:10000}")
+    private long maxKeys;
+
+    @PostConstruct
+    void initCache() {
+        this.counters = Caffeine.newBuilder()
+                .maximumSize(maxKeys)
+                .expireAfterAccess(Duration.ofSeconds(windowSeconds * 2L))
+                .build();
+    }
 
     @Bean
     public GlobalFilter rateLimitGlobalFilter() {
@@ -37,15 +48,15 @@ public class SimpleRateLimitFilter {
             long nowMillis = System.currentTimeMillis();
             long windowMillis = Duration.ofSeconds(windowSeconds).toMillis();
 
-            WindowCounter counter = counters.compute(key, (k, existing) -> {
+            WindowCounter counter = counters.asMap().compute(key, (k, existing) -> {
                 if (existing == null || nowMillis >= existing.windowStartMillis + windowMillis) {
-                    return new WindowCounter(nowMillis, new AtomicInteger(1));
+                    return new WindowCounter(nowMillis, 1);
                 }
-                existing.count.incrementAndGet();
+                existing.count++;
                 return existing;
             });
 
-            if (counter.count.get() > maxRequests) {
+            if (counter.count > maxRequests) {
                 exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                 exchange.getResponse().getHeaders().set("Retry-After", String.valueOf(windowSeconds));
                 return exchange.getResponse().setComplete();
@@ -66,6 +77,13 @@ public class SimpleRateLimitFilter {
         return "anonymous";
     }
 
-    private record WindowCounter(long windowStartMillis, AtomicInteger count) {
+    private static class WindowCounter {
+        private long windowStartMillis;
+        private int count;
+
+        private WindowCounter(long windowStartMillis, int count) {
+            this.windowStartMillis = windowStartMillis;
+            this.count = count;
+        }
     }
 }

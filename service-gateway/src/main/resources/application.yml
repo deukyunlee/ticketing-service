@@ -29,6 +29,7 @@ app:
   rate-limit:
     max-requests: 60
     window-seconds: 60
+    max-keys: 10000
 
 management:
   endpoints:
