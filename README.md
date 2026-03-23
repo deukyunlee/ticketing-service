@@ -111,9 +111,17 @@ H2_PASSWORD=your_password_here
 | `POST` | `/api/reservations` | 예약 생성 |
 | `GET` | `/api/reservations/{id}` | 예약 단건 조회 |
 | `GET` | `/api/reservations/me` | 내 예약 목록 조회 |
+| `GET` | `/api/admin/reservations/user/{userId}` | 관리자용 사용자별 예약 목록 조회 |
 
 > API 테스트 파일: [`http/service-ticket.http`](./http/service-ticket.http), [`http/service-reservation.http`](./http/service-reservation.http)
 > `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
+> Gateway 호출 시에는 `Authorization: Bearer <JWT>` 헤더를 사용한다.
+
+## Gateway Policies
+
+- 인증: `/api/**`는 JWT 인증 필수
+- 권한: `POST /api/events/**`, `/api/admin/**`는 `ADMIN` 권한 필요
+- 요청 제한: 기본 `60 req / 60 sec` (사용자 또는 IP 기준)
 
 ## Event Flow
 
