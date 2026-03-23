@@ -1,7 +1,7 @@
 # Ticketing Service
 
 Kafka 기반 Choreography Saga 패턴으로 동작하는 티켓 예약 시스템.
-3개의 독립된 마이크로서비스가 각자의 데이터베이스를 소유하며, 서비스 간 통신은 Kafka 이벤트로만 이루어진다.
+API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베이스를 소유하며, 서비스 간 통신은 Kafka 이벤트로만 이루어진다.
 
 ## Architecture
 
@@ -24,6 +24,7 @@ Kafka 기반 Choreography Saga 패턴으로 동작하는 티켓 예약 시스템
 ```
 ticketing-service/
 ├── common/                          # 공유 모듈 (이벤트, 예외, 상수)
+├── service-gateway/                 # API Gateway (인증/라우팅)
 ├── service-ticket/                  # 공연/좌석 관리
 ├── service-reservation/             # 예약 관리
 ├── service-payment/                 # 결제 처리
@@ -78,6 +79,7 @@ H2_PASSWORD=your_password_here
 ./gradlew build
 
 # 각 서비스 실행 (별도 터미널)
+./gradlew :service-gateway:bootRun
 ./gradlew :service-ticket:bootRun
 ./gradlew :service-reservation:bootRun
 ./gradlew :service-payment:bootRun
@@ -85,6 +87,7 @@ H2_PASSWORD=your_password_here
 
 | 서비스 | 포트 | H2 Console |
 |---|---|---|
+| service-gateway | 8089 | - |
 | service-ticket | 8080 | http://localhost:8080/h2-console |
 | service-reservation | 8081 | http://localhost:8081/h2-console |
 | service-payment | 8082 | http://localhost:8082/h2-console |
