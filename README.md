@@ -111,7 +111,11 @@ REDIS_PORT=6379
 > `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
 > Gateway 호출 시에는 `Authorization: Bearer <JWT>` 헤더를 사용한다.
 
-## Redis Cache
+## Redis
+
+### Distributed Lock
+
+동시성 충돌 방지를 위해 `service-ticket`의 좌석 상태 변경 메서드에 Redis 기반 분산 락을 적용한다.
 
 ### Cache TTL
 
