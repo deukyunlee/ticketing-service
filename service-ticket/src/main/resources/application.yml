@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: service-ticket
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    type: redis
   datasource:
     url: jdbc:h2:mem:ticketdb
     driver-class-name: org.h2.Driver

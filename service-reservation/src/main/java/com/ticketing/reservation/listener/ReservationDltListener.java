@@ -25,7 +25,7 @@ public class ReservationDltListener {
             properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentCompletedEvent")
     public void onPaymentCompletedDlt(PaymentCompletedEvent event) {
         log.error("DLT: Failed to confirm reservation after retries: reservationId={}", event.reservationId());
-        reservationService.confirmReservation(event.reservationId());
+        reservationService.confirmReservation(event.reservationId(), event.userId());
         log.info("DLT: Reservation confirmed via DLT recovery: reservationId={}", event.reservationId());
     }
 
@@ -34,7 +34,7 @@ public class ReservationDltListener {
             properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentFailedEvent")
     public void onPaymentFailedDlt(PaymentFailedEvent event) {
         log.error("DLT: Failed to cancel reservation after retries: reservationId={}", event.reservationId());
-        reservationService.cancelReservation(event.reservationId(), event.reason());
+        reservationService.cancelReservation(event.reservationId(), event.reason(), event.userId());
         log.info("DLT: Reservation cancelled via DLT recovery: reservationId={}", event.reservationId());
     }
 }

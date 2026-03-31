@@ -12,6 +12,9 @@ import com.ticketing.reservation.exception.ReservationErrorCode;
 import com.ticketing.reservation.repository.ReservationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +30,6 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final ApplicationEventPublisher eventPublisher;
-
     public ReservationService(ReservationRepository reservationRepository,
                               ApplicationEventPublisher eventPublisher) {
         this.reservationRepository = reservationRepository;
@@ -35,6 +37,7 @@ public class ReservationService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "user-reservations", key = "#userId")
     public ReservationResponse createReservation(String userId, ReservationRequest request) {
         String reservationId = UUID.randomUUID().toString();
 
@@ -53,7 +56,11 @@ public class ReservationService {
     }
 
     @Transactional
-    public void confirmReservation(String reservationId) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "reservations", key = "#reservationId"),
+            @CacheEvict(cacheNames = "user-reservations", key = "#userId")
+    })
+    public void confirmReservation(String reservationId, String userId) {
         Reservation reservation = findReservationById(reservationId);
 
         if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
@@ -72,7 +79,11 @@ public class ReservationService {
     }
 
     @Transactional
-    public void cancelReservation(String reservationId, String reason) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "reservations", key = "#reservationId"),
+            @CacheEvict(cacheNames = "user-reservations", key = "#userId")
+    })
+    public void cancelReservation(String reservationId, String reason, String userId) {
         Reservation reservation = findReservationById(reservationId);
 
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
@@ -91,11 +102,13 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "reservations", key = "#reservationId")
     public ReservationResponse getReservation(String reservationId) {
         return ReservationResponse.from(findReservationById(reservationId));
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "user-reservations", key = "#userId")
     public List<ReservationResponse> getReservationsByUser(String userId) {
         return reservationRepository.findByUserId(userId).stream()
                 .map(ReservationResponse::from)
