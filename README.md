@@ -17,7 +17,6 @@ API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베�
 | Database  | H2 In-Memory (서비스별 독립 DB)                        |
 | Cache     | Redis 7 (Spring Cache)                           |
 | ORM       | Spring Data JPA                                  |
-| Build     | Gradle (multi-module)                            |
 | Test      | JUnit 5, Mockito, AssertJ                        |
 
 ## Module Structure
@@ -52,16 +51,6 @@ ticketing-service/
 ```bash
 docker-compose up -d
 ```
-
-Redis 1대 + Zookeeper 1대 + Kafka 브로커 3대가 기동된다.
-
-| 컴포넌트           | 포트    |
-|----------------|-------|
-| Redis          | 6379  |
-| Zookeeper      | 2181  |
-| Kafka Broker 1 | 9092  |
-| Kafka Broker 2 | 19092 |
-| Kafka Broker 3 | 29092 |
 
 ### 2. 환경 변수 설정
 
@@ -124,8 +113,6 @@ REDIS_PORT=6379
 
 ## Redis Cache
 
-조회 성능 최적화를 위해 `service-ticket`, `service-reservation`에서 Redis 캐시를 사용한다.
-
 ### Cache TTL
 
 | 서비스         | 캐시 이름               | 키               | TTL |
@@ -135,18 +122,6 @@ REDIS_PORT=6379
 | Ticket      | `available-seats`   | `eventId`       | 30초 |
 | Reservation | `reservations`      | `reservationId` | 5분  |
 | Reservation | `user-reservations` | `userId`        | 3분  |
-
-### Cache Eviction
-
-- `service-ticket`
-    - `createEvent` 실행 시 `events-list` 전체 무효화
-    - `reserveSeat`, `releaseSeat` 실행 시 해당 `available-seats::{eventId}` 무효화
-- `service-reservation`
-    - `createReservation` 실행 시 해당 `user-reservations::{userId}` 무효화
-    - `confirmReservation`, `cancelReservation` 실행 시
-        - `reservations::{reservationId}`
-        - `user-reservations::{userId}`
-          를 함께 무효화
 
 ## Gateway Policies
 
@@ -181,20 +156,6 @@ REDIS_PORT=6379
 > 메시지 키: `reservationId` — 동일 예약 건의 이벤트 순서를 파티션 내에서 보장
 
 ## Reliability
-
-### Transactional Event Publishing
-
-DB 트랜잭션과 Kafka 메시지 발행의 원자성을 위해 `@TransactionalEventListener(phase = AFTER_COMMIT)` 을 적용한다.
-
-```
-@Transactional 메서드
-  └── DB 저장
-  └── ApplicationEvent 발행 (Spring 내부)
-        └── 트랜잭션 커밋 후 → KafkaTemplate.send() 실행
-```
-
-- DB 커밋이 실패하면 Kafka 메시지가 발행되지 않음
-- DB 커밋 성공 후 Kafka 발행이 실패하는 케이스는 Transactional Outbox Pattern으로 개선 예정 (TODO)
 
 ### Idempotency (멱등성)
 
@@ -241,14 +202,4 @@ Exception (시스템 예외)
 
 ## ERD
 
-각 서비스가 독립된 H2 DB를 사용하며, 서비스 간 물리적 FK는 존재하지 않는다.
-
 ![ERD](./docs/erd.png)
-
-## Reservation Status Transition
-
-```
-PENDING ──(payment-completed)──▶ CONFIRMED
-   │
-   └────(payment-failed)───────▶ CANCELLED
-```
