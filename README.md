@@ -15,6 +15,7 @@ API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베�
 | Framework | Spring Boot 3.2.5 |
 | Messaging | Apache Kafka (Confluent 7.5.0, 3-broker cluster) |
 | Database | H2 In-Memory (서비스별 독립 DB) |
+| Cache | Redis 7 (Spring Cache) |
 | ORM | Spring Data JPA |
 | Build | Gradle (multi-module) |
 | Test | JUnit 5, Mockito, AssertJ |
@@ -29,7 +30,7 @@ ticketing-service/
 ├── service-reservation/             # 예약 관리
 ├── service-payment/                 # 결제 처리
 │
-├── docker-compose.yml               # Kafka 클러스터 (Zookeeper + 3 Brokers)
+├── docker-compose.yml               # 인프라 (Redis + Kafka 클러스터)
 ├── http/                            # API 테스트 파일 (.http)
 └── docs/                            # 다이어그램
     ├── architecture.puml            # 전체 아키텍처
@@ -52,10 +53,11 @@ ticketing-service/
 docker-compose up -d
 ```
 
-Zookeeper 1대 + Kafka 브로커 3대가 기동된다.
+Redis 1대 + Zookeeper 1대 + Kafka 브로커 3대가 기동된다.
 
 | 컴포넌트 | 포트 |
 |---|---|
+| Redis | 6379 |
 | Zookeeper | 2181 |
 | Kafka Broker 1 | 9092 |
 | Kafka Broker 2 | 19092 |
@@ -70,6 +72,8 @@ cp .env.example .env
 ```properties
 H2_USERNAME=sa
 H2_PASSWORD=your_password_here
+REDIS_HOST=localhost
+REDIS_PORT=6379
 ```
 
 ### 3. 애플리케이션 빌드 및 실행
@@ -116,6 +120,32 @@ H2_PASSWORD=your_password_here
 > API 테스트 파일: [`http/service-ticket.http`](./http/service-ticket.http), [`http/service-reservation.http`](./http/service-reservation.http)
 > `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
 > Gateway 호출 시에는 `Authorization: Bearer <JWT>` 헤더를 사용한다.
+
+## Redis Cache
+
+조회 성능 최적화를 위해 `service-ticket`, `service-reservation`에서 Redis 캐시를 사용한다.
+
+### Cache TTL
+
+| 서비스 | 캐시 이름 | 키 | TTL |
+|---|---|---|---|
+| Ticket | `events` | `eventId` | 30분 |
+| Ticket | `events-list` | `all` | 5분 |
+| Ticket | `available-seats` | `eventId` | 30초 |
+| Reservation | `reservations` | `reservationId` | 5분 |
+| Reservation | `user-reservations` | `userId` | 3분 |
+
+### Cache Eviction
+
+- `service-ticket`
+  - `createEvent` 실행 시 `events-list` 전체 무효화
+  - `reserveSeat`, `releaseSeat` 실행 시 해당 `available-seats::{eventId}` 무효화
+- `service-reservation`
+  - `createReservation` 실행 시 해당 `user-reservations::{userId}` 무효화
+  - `confirmReservation`, `cancelReservation` 실행 시
+    - `reservations::{reservationId}`
+    - `user-reservations::{userId}`
+    를 함께 무효화
 
 ## Gateway Policies
 
