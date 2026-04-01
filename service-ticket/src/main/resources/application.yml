@@ -11,12 +11,12 @@ spring:
   cache:
     type: redis
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/ticketdb?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: ${MYSQL_USER:ticketing}
-    password: ${MYSQL_PASSWORD:ticketing}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/ticketdb?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=${MYSQL_SERVER_TIMEZONE:Asia/Seoul}
+    username: ${TICKET_DB_USER:ticket_svc}
+    password: ${TICKET_DB_PASSWORD:ticket_pass}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
   kafka:
     bootstrap-servers:
