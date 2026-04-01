@@ -21,6 +21,7 @@ flowchart LR
 |-----------|--------------------------------------------------|
 | Language  | Java 17                                          |
 | Framework | Spring Boot 3.2.5                                |
+| API 문서    | SpringDoc OpenAPI 3 (Swagger UI)                 |
 | Messaging | Apache Kafka (Confluent 7.5.0, 3-broker cluster) |
 | Database  | MySQL 8                                          |
 | Redis     | 캐시(Spring Cache), 분산 락(Redisson)                 |
@@ -88,31 +89,15 @@ cp .env.example .env
 | service-payment     | 8082    | DB: paymentdb     |
 | MySQL (Compose)     | 3306    |                   |
 
-## API Endpoints
+## API 문서 (Swagger UI)
 
-### Ticket Service (`:8080`)
+| 서비스                 | Swagger UI                                  | OpenAPI JSON                      |
+|---------------------|---------------------------------------------|-----------------------------------|
+| Ticket `:8080`      | http://localhost:8080/swagger-ui/index.html | http://localhost:8080/v3/api-docs |
+| Reservation `:8081` | http://localhost:8081/swagger-ui/index.html | http://localhost:8081/v3/api-docs |
 
-| Method | Endpoint                           | 설명               |
-|--------|------------------------------------|------------------|
-| `POST` | `/api/events`                      | 공연 생성 (좌석 자동 생성) |
-| `GET`  | `/api/events`                      | 전체 공연 목록 조회      |
-| `GET`  | `/api/events/{id}`                 | 공연 단건 조회         |
-| `GET`  | `/api/events/{id}/seats`           | 전체 좌석 조회         |
-| `GET`  | `/api/events/{id}/seats/available` | 잔여 좌석 조회         |
-
-### Reservation Service (`:8081`)
-
-| Method | Endpoint                                | 설명                 |
-|--------|-----------------------------------------|--------------------|
-| `POST` | `/api/reservations`                     | 예약 생성              |
-| `GET`  | `/api/reservations/{id}`                | 예약 단건 조회           |
-| `GET`  | `/api/reservations/me`                  | 내 예약 목록 조회         |
-| `GET`  | `/api/admin/reservations/user/{userId}` | 관리자용 사용자별 예약 목록 조회 |
-
-> API 테스트 파일: [`http/service-ticket.http`](./http/service-ticket.http), [
-`http/service-reservation.http`](./http/service-reservation.http)
-> `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
-> Gateway 호출 시에는 `Authorization: Bearer <JWT>` 헤더를 사용한다.
+예약 API는 Gateway가 넘겨주는 `X-User-Id`가 필요하고,
+클라이언트는 `Authorization: Bearer <JWT>`를 붙인다.
 
 ## Redis
 
