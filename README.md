@@ -1,11 +1,19 @@
 # Ticketing Service
 
 Kafka 기반 Choreography Saga 패턴으로 동작하는 티켓 예약 시스템.
-API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베이스를 소유하며, 서비스 간 통신은 Kafka 이벤트로만 이루어진다.
+Gateway 뒤에 예약·티켓·결제 서비스가 각자의 API를 제공한다.
 
 ## Architecture
 
-![Architecture](./docs/architecture.png)
+```mermaid
+flowchart LR
+    C[Client] --> G[Gateway]
+    G --> R[Reservation]
+    G --> T[Ticket]
+    R & T --> Redis[(Redis)]
+    R & T & P[Payment] --> K[(Kafka)]
+    R & T & P --> DB[(H2)]
+```
 
 ## Tech Stack
 
@@ -15,7 +23,7 @@ API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베�
 | Framework | Spring Boot 3.2.5                                |
 | Messaging | Apache Kafka (Confluent 7.5.0, 3-broker cluster) |
 | Database  | H2 In-Memory (서비스별 독립 DB)                        |
-| Cache     | Redis 7 (Spring Cache)                           |
+| Redis     | 캐시(Spring Cache), 분산 락(Redisson)                 |
 | ORM       | Spring Data JPA                                  |
 | Test      | JUnit 5, Mockito, AssertJ                        |
 
@@ -29,7 +37,7 @@ ticketing-service/
 ├── service-reservation/             # 예약 관리
 ├── service-payment/                 # 결제 처리
 │
-├── docker-compose.yml               # 인프라 (Redis + Kafka 클러스터)
+├── docker-compose.yml               # 인프라 (Kafka, Redis 마스터·복제·Sentinel)
 ├── http/                            # API 테스트 파일 (.http)
 └── docs/                            # 다이어그램
     ├── architecture.puml            # 전체 아키텍처
@@ -68,10 +76,8 @@ REDIS_PORT=6379
 ### 3. 애플리케이션 빌드 및 실행
 
 ```bash
-# 빌드
 ./gradlew build
 
-# 각 서비스 실행 (별도 터미널)
 ./gradlew :service-gateway:bootRun
 ./gradlew :service-ticket:bootRun
 ./gradlew :service-reservation:bootRun
@@ -115,7 +121,7 @@ REDIS_PORT=6379
 
 ### Distributed Lock
 
-동시성 충돌 방지를 위해 `service-ticket`의 좌석 상태 변경 메서드에 Redis 기반 분산 락을 적용한다.
+`service-ticket` 좌석 변경에는 **Redisson** `RLock`으로 분산 락을 건다.
 
 ### Cache TTL
 
