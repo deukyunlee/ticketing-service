@@ -65,7 +65,7 @@ class ReservationServiceTest {
         Reservation reservation = new Reservation("res-1", "user-1", "1", "A1", 50000);
         given(reservationRepository.findById("res-1")).willReturn(Optional.of(reservation));
 
-        reservationService.confirmReservation("res-1");
+        reservationService.confirmReservation("res-1", "user-1");
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
         verify(reservationRepository).save(reservation);
@@ -80,7 +80,7 @@ class ReservationServiceTest {
         Reservation reservation = new Reservation("res-1", "user-1", "1", "A1", 50000);
         given(reservationRepository.findById("res-1")).willReturn(Optional.of(reservation));
 
-        reservationService.cancelReservation("res-1", "Payment failed");
+        reservationService.cancelReservation("res-1", "Payment failed", "user-1");
 
         assertThat(reservation.getStatus()).isEqualTo(ReservationStatus.CANCELLED);
         verify(reservationRepository).save(reservation);
@@ -97,7 +97,7 @@ class ReservationServiceTest {
         reservation.updateStatus(ReservationStatus.CONFIRMED);
         given(reservationRepository.findById("res-1")).willReturn(Optional.of(reservation));
 
-        reservationService.confirmReservation("res-1");
+        reservationService.confirmReservation("res-1", "user-1");
 
         verify(reservationRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
@@ -109,7 +109,7 @@ class ReservationServiceTest {
         reservation.updateStatus(ReservationStatus.CANCELLED);
         given(reservationRepository.findById("res-1")).willReturn(Optional.of(reservation));
 
-        reservationService.cancelReservation("res-1", "Payment failed");
+        reservationService.cancelReservation("res-1", "Payment failed", "user-1");
 
         verify(reservationRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());

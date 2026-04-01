@@ -3,9 +3,11 @@ package com.ticketing.ticket.service;
 import com.ticketing.ticket.entity.Seat;
 import com.ticketing.common.exception.BusinessException;
 import com.ticketing.ticket.exception.TicketErrorCode;
+import com.ticketing.ticket.lock.DistributedLock;
 import com.ticketing.ticket.repository.SeatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,8 @@ public class SeatService {
     }
 
     @Transactional
+    @DistributedLock(key = "'seat:' + #eventId + ':' + #seatNumber", waitTime = 2L, leaseTime = 3L)
+    @CacheEvict(cacheNames = "available-seats", key = "#eventId")
     public void reserveSeat(Long eventId, String seatNumber, String reservationId) {
         Seat seat = seatRepository.findByEventIdAndSeatNumber(eventId, seatNumber)
                 .orElseThrow(() -> new BusinessException(TicketErrorCode.SEAT_NOT_FOUND,
@@ -41,6 +45,8 @@ public class SeatService {
     }
 
     @Transactional
+    @DistributedLock(key = "'seat:' + #eventId + ':' + #seatNumber", waitTime = 2L, leaseTime = 3L)
+    @CacheEvict(cacheNames = "available-seats", key = "#eventId")
     public void releaseSeat(Long eventId, String seatNumber) {
         Seat seat = seatRepository.findByEventIdAndSeatNumber(eventId, seatNumber)
                 .orElseThrow(() -> new BusinessException(TicketErrorCode.SEAT_NOT_FOUND,

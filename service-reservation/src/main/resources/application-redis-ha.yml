@@ -1,0 +1,9 @@
+# Sentinel 자동 페일오버: spring.profiles.active 또는 spring.profiles.include 에 redis-ha 추가
+# 예: --spring.profiles.include=redis-ha
+spring:
+  data:
+    redis:
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:mymaster}
+        nodes:
+          - "${REDIS_SENTINEL_NODE:127.0.0.1:26379}"

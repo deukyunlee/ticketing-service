@@ -9,6 +9,8 @@ import com.ticketing.common.exception.BusinessException;
 import com.ticketing.ticket.exception.TicketErrorCode;
 import com.ticketing.ticket.repository.EventRepository;
 import com.ticketing.ticket.repository.SeatRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class EventService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "events-list", allEntries = true)
     public EventResponse createEvent(CreateEventRequest request) {
         Event event = new Event(
                 request.getTitle(),
@@ -47,6 +50,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "events-list", key = "'all'")
     public List<EventResponse> getAllEvents() {
         return eventRepository.findAll().stream()
                 .map(EventResponse::from)
@@ -54,6 +58,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "events", key = "#eventId")
     public EventResponse getEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BusinessException(TicketErrorCode.EVENT_NOT_FOUND, String.valueOf(eventId)));
@@ -61,6 +66,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "available-seats", key = "#eventId")
     public List<SeatResponse> getAvailableSeats(Long eventId) {
         validateEventExists(eventId);
         return seatRepository.findByEventIdAndReserved(eventId, false).stream()

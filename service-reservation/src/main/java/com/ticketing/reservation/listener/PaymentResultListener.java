@@ -25,14 +25,14 @@ public class PaymentResultListener {
     public void onPaymentCompleted(PaymentCompletedEvent event) {
         log.info("Payment completed: paymentId={}, reservationId={}",
                 event.paymentId(), event.reservationId());
-        reservationService.confirmReservation(event.reservationId());
+        reservationService.confirmReservation(event.reservationId(), event.userId());
     }
 
     @KafkaListener(topics = KafkaConstants.PAYMENT_FAILED_TOPIC,
             properties = "spring.json.value.default.type=com.ticketing.common.event.PaymentFailedEvent")
     public void onPaymentFailed(PaymentFailedEvent event) {
         log.info("Payment failed: reservationId={}, reason={}",
-                event.reason(), event.reason());
-        reservationService.cancelReservation(event.reservationId(), event.reason());
+                event.reservationId(), event.reason());
+        reservationService.cancelReservation(event.reservationId(), event.reason(), event.userId());
     }
 }

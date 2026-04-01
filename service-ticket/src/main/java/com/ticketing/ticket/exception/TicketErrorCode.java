@@ -9,7 +9,8 @@ public enum TicketErrorCode implements ErrorCode {
 
     // Seat 1100~1199
     SEAT_NOT_FOUND(1100, 404, "Seat not found"),
-    SEAT_ALREADY_RESERVED(1101, 409, "Seat already reserved");
+    SEAT_ALREADY_RESERVED(1101, 409, "Seat already reserved"),
+    SEAT_LOCK_ACQUISITION_FAILED(1102, 423, "Failed to acquire seat lock");
 
     private final int code;
     private final int status;
