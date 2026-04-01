@@ -12,7 +12,7 @@ flowchart LR
     G --> T[Ticket]
     R & T --> Redis[(Redis)]
     R & T & P[Payment] --> K[(Kafka)]
-    R & T & P --> DB[(H2)]
+    R & T & P --> DB[(MySQL)]
 ```
 
 ## Tech Stack
@@ -22,7 +22,7 @@ flowchart LR
 | Language  | Java 17                                          |
 | Framework | Spring Boot 3.2.5                                |
 | Messaging | Apache Kafka (Confluent 7.5.0, 3-broker cluster) |
-| Database  | H2 In-Memory (서비스별 독립 DB)                        |
+| Database  | MySQL 8                                          |
 | Redis     | 캐시(Spring Cache), 분산 락(Redisson)                 |
 | ORM       | Spring Data JPA                                  |
 | Test      | JUnit 5, Mockito, AssertJ                        |
@@ -37,7 +37,7 @@ ticketing-service/
 ├── service-reservation/             # 예약 관리
 ├── service-payment/                 # 결제 처리
 │
-├── docker-compose.yml               # 인프라 (Kafka, Redis 마스터·복제·Sentinel)
+├── docker-compose.yml               # 인프라 (Kafka, MySQL, Redis)
 ├── http/                            # API 테스트 파일 (.http)
 └── docs/                            # 다이어그램
     ├── architecture.puml            # 전체 아키텍처
@@ -66,12 +66,8 @@ docker-compose up -d
 cp .env.example .env
 ```
 
-```properties
-H2_USERNAME=sa
-H2_PASSWORD=your_password_here
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
+`.env.example`을 참고해 MySQL·Redis 접속 정보를 맞춘다. 앱 기본값은 `MYSQL_USER`/`MYSQL_PASSWORD`=`ticketing`, DB는 `docker/mysql/init`에서
+생성된다.
 
 ### 3. 애플리케이션 빌드 및 실행
 
@@ -84,12 +80,13 @@ REDIS_PORT=6379
 ./gradlew :service-payment:bootRun
 ```
 
-| 서비스                 | 포트   | H2 Console                       |
-|---------------------|------|----------------------------------|
-| service-gateway     | 8089 | -                                |
-| service-ticket      | 8080 | http://localhost:8080/h2-console |
-| service-reservation | 8081 | http://localhost:8081/h2-console |
-| service-payment     | 8082 | http://localhost:8082/h2-console |
+| 서비스                 | HTTP 포트 | 비고                |
+|---------------------|---------|-------------------|
+| service-gateway     | 8089    | -                 |
+| service-ticket      | 8080    | DB: ticketdb      |
+| service-reservation | 8081    | DB: reservationdb |
+| service-payment     | 8082    | DB: paymentdb     |
+| MySQL (Compose)     | 3306    |                   |
 
 ## API Endpoints
 

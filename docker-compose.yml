@@ -38,6 +38,18 @@ services:
       - ./docker/redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
     command: redis-sentinel /usr/local/etc/redis/sentinel.conf
 
+  mysql:
+    image: mysql:8.0
+    container_name: ticketing-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ticketing-zookeeper
@@ -110,3 +122,4 @@ services:
 volumes:
   redis-master-data:
   redis-replica-data:
+  mysql-data:

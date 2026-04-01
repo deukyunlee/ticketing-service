@@ -1,0 +1,10 @@
+# 로컬/CI 테스트: Docker MySQL 없이 컨텍스트 로딩 (H2 인메모리)
+spring:
+  datasource:
+    url: jdbc:h2:mem:ticket_test;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
