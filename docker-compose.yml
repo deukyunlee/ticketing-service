@@ -1,9 +1,42 @@
 services:
-  redis:
+  redis-master:
     image: redis:7-alpine
-    container_name: ticketing-redis
+    container_name: ticketing-redis-master
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
+    volumes:
+      - redis-master-data:/data
+
+  redis-replica:
+    image: redis:7-alpine
+    container_name: ticketing-redis-replica
+    depends_on:
+      - redis-master
+    command: >
+      redis-server
+      --replicaof redis-master 6379
+      --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-replica-data:/data
+
+  redis-sentinel:
+    image: redis:7-alpine
+    container_name: ticketing-redis-sentinel
+    depends_on:
+      - redis-master
+      - redis-replica
+    ports:
+      - "26379:26379"
+    volumes:
+      - ./docker/redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -73,3 +106,7 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+volumes:
+  redis-master-data:
+  redis-replica-data:
