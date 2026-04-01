@@ -1,0 +1,7 @@
+# 운영: SPRING_PROFILES_ACTIVE=prod (또는 spring.profiles.include=prod)
+# 스키마는 Flyway 등으로 관리하고, 엔티티와 DB 정의가 일치해야 기동된다.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false

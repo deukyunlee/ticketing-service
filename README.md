@@ -1,11 +1,19 @@
 # Ticketing Service
 
 Kafka 기반 Choreography Saga 패턴으로 동작하는 티켓 예약 시스템.
-API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베이스를 소유하며, 서비스 간 통신은 Kafka 이벤트로만 이루어진다.
+Gateway 뒤에 예약·티켓·결제 서비스가 각자의 API를 제공한다.
 
 ## Architecture
 
-![Architecture](./docs/architecture.png)
+```mermaid
+flowchart LR
+    C[Client] --> G[Gateway]
+    G --> R[Reservation]
+    G --> T[Ticket]
+    R & T --> Redis[(Redis)]
+    R & T & P[Payment] --> K[(Kafka)]
+    R & T & P --> DB[(MySQL)]
+```
 
 ## Tech Stack
 
@@ -13,9 +21,10 @@ API Gateway + 3개의 독립된 마이크로서비스가 각자의 데이터베�
 |-----------|--------------------------------------------------|
 | Language  | Java 17                                          |
 | Framework | Spring Boot 3.2.5                                |
+| API 문서    | SpringDoc OpenAPI 3 (Swagger UI)                 |
 | Messaging | Apache Kafka (Confluent 7.5.0, 3-broker cluster) |
-| Database  | H2 In-Memory (서비스별 독립 DB)                        |
-| Cache     | Redis 7 (Spring Cache)                           |
+| Database  | MySQL 8                                          |
+| Redis     | 캐시(Spring Cache), 분산 락(Redisson)                 |
 | ORM       | Spring Data JPA                                  |
 | Test      | JUnit 5, Mockito, AssertJ                        |
 
@@ -29,7 +38,7 @@ ticketing-service/
 ├── service-reservation/             # 예약 관리
 ├── service-payment/                 # 결제 처리
 │
-├── docker-compose.yml               # 인프라 (Redis + Kafka 클러스터)
+├── docker-compose.yml               # 인프라 (Kafka, MySQL, Redis)
 ├── http/                            # API 테스트 파일 (.http)
 └── docs/                            # 다이어그램
     ├── architecture.puml            # 전체 아키텍처
@@ -58,64 +67,43 @@ docker-compose up -d
 cp .env.example .env
 ```
 
-```properties
-H2_USERNAME=sa
-H2_PASSWORD=your_password_here
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
+`.env.example`을 참고해 MySQL·Redis 접속 정보를 맞춘다. 앱 기본값은 `MYSQL_USER`/`MYSQL_PASSWORD`=`ticketing`, DB는 `docker/mysql/init`에서
+생성된다.
 
 ### 3. 애플리케이션 빌드 및 실행
 
 ```bash
-# 빌드
 ./gradlew build
 
-# 각 서비스 실행 (별도 터미널)
 ./gradlew :service-gateway:bootRun
 ./gradlew :service-ticket:bootRun
 ./gradlew :service-reservation:bootRun
 ./gradlew :service-payment:bootRun
 ```
 
-| 서비스                 | 포트   | H2 Console                       |
-|---------------------|------|----------------------------------|
-| service-gateway     | 8089 | -                                |
-| service-ticket      | 8080 | http://localhost:8080/h2-console |
-| service-reservation | 8081 | http://localhost:8081/h2-console |
-| service-payment     | 8082 | http://localhost:8082/h2-console |
+| 서비스                 | HTTP 포트 | 비고                |
+|---------------------|---------|-------------------|
+| service-gateway     | 8089    | -                 |
+| service-ticket      | 8080    | DB: ticketdb      |
+| service-reservation | 8081    | DB: reservationdb |
+| service-payment     | 8082    | DB: paymentdb     |
+| MySQL (Compose)     | 3306    |                   |
 
-## API Endpoints
+## API 문서 (Swagger UI)
 
-### Ticket Service (`:8080`)
+| 서비스                 | Swagger UI                                  | OpenAPI JSON                      |
+|---------------------|---------------------------------------------|-----------------------------------|
+| Ticket `:8080`      | http://localhost:8080/swagger-ui/index.html | http://localhost:8080/v3/api-docs |
+| Reservation `:8081` | http://localhost:8081/swagger-ui/index.html | http://localhost:8081/v3/api-docs |
 
-| Method | Endpoint                           | 설명               |
-|--------|------------------------------------|------------------|
-| `POST` | `/api/events`                      | 공연 생성 (좌석 자동 생성) |
-| `GET`  | `/api/events`                      | 전체 공연 목록 조회      |
-| `GET`  | `/api/events/{id}`                 | 공연 단건 조회         |
-| `GET`  | `/api/events/{id}/seats`           | 전체 좌석 조회         |
-| `GET`  | `/api/events/{id}/seats/available` | 잔여 좌석 조회         |
-
-### Reservation Service (`:8081`)
-
-| Method | Endpoint                                | 설명                 |
-|--------|-----------------------------------------|--------------------|
-| `POST` | `/api/reservations`                     | 예약 생성              |
-| `GET`  | `/api/reservations/{id}`                | 예약 단건 조회           |
-| `GET`  | `/api/reservations/me`                  | 내 예약 목록 조회         |
-| `GET`  | `/api/admin/reservations/user/{userId}` | 관리자용 사용자별 예약 목록 조회 |
-
-> API 테스트 파일: [`http/service-ticket.http`](./http/service-ticket.http), [
-`http/service-reservation.http`](./http/service-reservation.http)
-> `service-reservation`은 Gateway가 전달하는 `X-User-Id` 헤더를 사용한다.
-> Gateway 호출 시에는 `Authorization: Bearer <JWT>` 헤더를 사용한다.
+예약 API는 Gateway가 넘겨주는 `X-User-Id`가 필요하고,
+클라이언트는 `Authorization: Bearer <JWT>`를 붙인다.
 
 ## Redis
 
 ### Distributed Lock
 
-동시성 충돌 방지를 위해 `service-ticket`의 좌석 상태 변경 메서드에 Redis 기반 분산 락을 적용한다.
+`service-ticket` 좌석 변경에는 **Redisson** `RLock`으로 분산 락을 건다.
 
 ### Cache TTL
 

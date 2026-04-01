@@ -11,17 +11,12 @@ spring:
   cache:
     type: redis
   datasource:
-    url: jdbc:h2:mem:reservationdb
-    driver-class-name: org.h2.Driver
-    username: ${env.H2_USERNAME:sa}
-    password: ${env.H2_PASSWORD:}
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/reservationdb?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=${MYSQL_SERVER_TIMEZONE:Asia/Seoul}
+    username: ${RESERVATION_DB_USER:reservation_svc}
+    password: ${RESERVATION_DB_PASSWORD:reservation_pass}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
   kafka:
     bootstrap-servers:

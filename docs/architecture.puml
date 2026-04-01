@@ -2,71 +2,42 @@
 !theme plain
 skinparam shadowing false
 skinparam componentStyle rectangle
-skinparam defaultFontSize 13
-skinparam noteFontSize 11
+skinparam defaultFontSize 12
 
-title Ticketing Service Architecture
+title Ticketing — 개요 (Choreography Saga)
 
 actor Client
 
-component "Reservation\nService\n:8081" as R
-component "Ticket\nService\n:8080" as T
-component "Payment\nService\n:8082" as P
+component "Gateway\n:8089" as GW
+component "Reservation\n:8081" as R
+component "Ticket\n:8080" as T
+component "Payment\n:8082" as P
 
 queue "Kafka" as K
-queue ".DLT" as DLT
+database "Redis\n캐시 · 락" as Redis
+database "DB\n(H2·서비스별)" as DB
 
-database "reservationDB" as RDB
-database "ticketDB" as TDB
-database "paymentDB" as PDB
+Client --> GW : HTTP
+GW --> R
+GW --> T
 
-' --- DB connections ---
-R --> RDB : Reservation\n(status)
-T --> TDB : Event, Seat\n(reserved)
-P --> PDB : Payment\n(status, UNIQUE reservation_id)
+R --> K
+T --> K
+P --> K
+K --> R : 이벤트 소비
+K --> T
+K --> P
 
-' --- Main flow (Success) ---
-Client --> R : 1. POST /api/reservations
-R --> K : 2. reservation-requested\n(@AfterCommit)
-K --> T : 3. reserve seat
-K --> P : 4. process payment
-P --> K : 5. payment-completed\n(@AfterCommit)
-K --> R : 6. confirm reservation
-R --> K : 7. reservation-confirmed\n(@AfterCommit)
+R --> Redis
+T --> Redis
+R --> DB
+T --> DB
+P --> DB
 
-' --- Compensation (Payment Failure) ---
-P --> K : 5'. payment-failed
-K --> R : 6'. cancel reservation
-R --> K : 7'. reservation-cancelled
-K --> T : 8. release seat\n[compensation]
-
-' --- DLT ---
-K --> DLT : retry exhausted\n(FixedBackOff 1s x 3)
-DLT --> T : seat 재처리
-DLT --> P : FAILED 저장\n+ 취소 이벤트 발행
-DLT --> R : confirm/cancel 재처리
-
-note right of DLT
-  <b>Dead Letter Topic</b>
-  각 서비스의 DltListener가
-  .DLT 토픽을 소비하여 최종 처리
-  (기존 서비스 로직 재사용, 멱등성 보장)
-end note
-
-note bottom of R
-  <b>Choreography Saga</b>
-  - 이벤트 기반 상태 전이
-  - 실패 시 보상 트랜잭션
-  - @TransactionalEventListener(AFTER_COMMIT)
-  - 상태 기반 멱등성
-end note
-
-note bottom of P
-  <b>Idempotency</b>
-  - reservation_id UNIQUE (DB)
-  - findByReservationId (App)
-  - IllegalArgumentException만 catch
-  - 시스템 예외 → 상위 전파 → DLT
+note bottom of K
+  **성공:** 예약요청 → 좌석·결제 → 확정 이벤트
+  **실패:** 결제실패 → 예약취소 → 좌석해제 (보상)
+  **DLT:** 재시도 소진 시 .DLT → 멱등 재처리
 end note
 
 @enduml
